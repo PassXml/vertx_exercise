@@ -1,0 +1,14 @@
+{
+  "dbSetting": {
+    "type": "PostgreSql|Mysql",
+    "host": "",
+    "port": 123,
+    "username": "username",
+    "password": "password",
+    "database": "database",
+    "flyway": {
+      "enable": false,
+      "mode": "baseline|null"
+    }
+  }
+}

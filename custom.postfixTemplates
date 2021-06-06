@@ -1,0 +1,8 @@
+.cspe :  CoroutineScope(SupervisorJob())
+  ANY  →    CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler($end$)) {\
+   $expr$ \
+	}
+.breaker: br
+  ANY  → Top.Breaker.execute<Any> { br ->\
+    $expr$ \
+  }

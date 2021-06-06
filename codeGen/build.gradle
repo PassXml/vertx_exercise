@@ -1,0 +1,28 @@
+plugins {
+  id 'java'
+  id 'maven'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencies {
+  compileOnly "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
+  //    代码生成
+  implementation "io.vertx:vertx-codegen:$vertxVersion"
+  api group: 'org.jboss.forge.roaster', name: 'roaster-api', version: '2.22.3.Final'
+  api group: 'org.jboss.forge.roaster', name: 'roaster-jdt', version: '2.22.3.Final'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+application {
+  mainClassName("org.start2do.vertx.utils.JavaCodeGenUtils")
+}

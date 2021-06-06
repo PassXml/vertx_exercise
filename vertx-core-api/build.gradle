@@ -1,0 +1,37 @@
+plugins {
+  id "java"
+  id "maven"
+}
+
+group = "org.start2do"
+version = "1.0-SNAPSHOT"
+
+//设置输出目录
+def out_path = "${project.properties["out_path"]}$group"
+
+def vertxVersion = project.properties["vertxVersion"]
+
+sourceSets {
+  main {
+    //if you truly want to override the defaults:
+    output.resourcesDir = file(out_path)
+    // Compiled Java classes should use this directory
+    java {
+      outputDir = file(out_path)
+      srcDirs "src/main/generated"
+    }
+  }
+}
+dependencies {
+  annotationProcessor 'org.projectlombok:lombok:1.18.12'
+  kapt 'org.projectlombok:lombok:1.18.12'
+  compileOnly 'org.projectlombok:lombok:1.18.12'
+  compileOnly "io.vertx:vertx-codegen:$vertxVersion"
+}
+
+compileKotlin {
+  destinationDir = file(out_path)
+}
+compileJava {
+  destinationDir = file(out_path)
+}

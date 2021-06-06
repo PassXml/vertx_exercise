@@ -1,0 +1,28 @@
+plugins {
+  id 'java'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation(project(":vertx-core-api"))
+  implementation(project(":vertx-core"))
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+  annotationProcessor "io.vertx:vertx-web-api-service:${vertxVersion}"
+  api "io.vertx:vertx-web-api-service:${vertxVersion}"
+  api "io.vertx:vertx-web-openapi:$vertxVersion"
+  api "io.vertx:vertx-web:$vertxVersion"
+  api("io.vertx:vertx-auth-jwt:$vertxVersion")
+  api("io.vertx:vertx-auth-common:$vertxVersion")
+}
+
+test {
+  useJUnitPlatform()
+}
+mainClassName = ''

@@ -1,0 +1,42 @@
+{
+  "eventBus": {
+    "haGroup": "vertx",
+    "enable": true,
+    "type": "ignite|zookeeper",
+    "host": null,
+    "port": 8003,
+    "publicPort": 8003,
+    "connectTimeout": 2000,
+    "ssl": {
+      "enable": true,
+      "certPath": "client.p12",
+      "certPassword": "HJhjf7687k",
+      "caPath": "ca.crt"
+    },
+    "igniteConfig": {
+      "addresses": [
+        "127.0.0.1:48500..48520"
+      ],
+      "dataEncryptionCertPath": "igniteCert/ignite_keystore.jks",
+      "dataEncryptionPassword": "vertx123!@!",
+      "workDir": "/Volumes/RamDisk/Caches",
+      "certPath": null,
+      "certPassword": null,
+      "caPath": null,
+      "caPassword": null
+    },
+    "zookeeperConfig": {
+      "zookeeperHosts": "127.0.0.1",
+      "rootPath": "io.vertx",
+      "retry": {
+        "initialSleepTime": 3000,
+        "maxTimes": 3
+      }
+    }
+  },
+  "serviceScanPackages": [
+    "org.start2do.vertx.service",
+    "org.start2do.vertx.controller"
+  ],
+  "serviceAddress": "service"
+}

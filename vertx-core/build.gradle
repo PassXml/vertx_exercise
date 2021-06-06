@@ -1,0 +1,35 @@
+plugins {
+  id 'java'
+  id 'maven'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  jcenter()
+  mavenCentral()
+}
+
+
+dependencies {
+  api(project(":vertx-core-api"))
+  api "io.vertx:vertx-codegen:$vertxVersion"
+  compileOnly "net.cinnom:nano-cuckoo:3.0.2"
+  compileOnly "io.vertx:vertx-web-api-service:${vertxVersion}"
+
+
+}
+def out_path = "${project.properties["out_path"]}$group"
+
+
+sourceSets {
+  main {
+    output.resourcesDir = file(out_path)
+    java.outputDir = file(out_path)
+  }
+}
+compileKotlin {
+  destinationDir = file(out_path)
+}
+mainClassName = ''

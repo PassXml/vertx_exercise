@@ -1,0 +1,28 @@
+plugins {
+  id 'java'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+  implementation(project(":vertx-core-api"))
+  implementation(project(":vertx-core"))
+  api "org.flywaydb:flyway-core:6.5.2"
+  api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
+  compileOnly "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
+  compileOnly("io.vertx:vertx-pg-client:$vertxVersion")
+
+}
+
+test {
+  useJUnitPlatform()
+}
+mainClassName = ''

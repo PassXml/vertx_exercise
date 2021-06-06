@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT" >
+      <!-- <LogStashJSONLayout/> -->
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.apache.ignite.IgniteLogger" level="error">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+    <Logger name="org.apache.ignite.CourtesyConfigNotice" level="info">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+    <Logger name="io.vertx.spi.cluster.ignite.impl.VertxLogger" level="info">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+    <Logger name="TOP" level="debug">
+      <AppenderRef ref="STDOUT"/>
+    </Logger>
+    <Root level="debug">
+      <!-- <AppenderRef ref="vertx_socket" /> -->
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+</Configuration>

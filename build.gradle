@@ -1,0 +1,211 @@
+buildscript {
+  ext {
+    postgresqlVertsion = "42.2.14"
+    JooqVertxVersion = "6.3.0"
+    kotlinVersion = "1.5.10"
+    vertxVersion = "4.1.0"
+    log4jVersion = "2.13.3"
+    junitJupiterVersion = "5.6.0"
+    igniteVersion = "2.9.1"
+  }
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+//    classpath "org.start2do:codegen:1.0-SNAPSHOT"
+    classpath "org.postgresql:postgresql:$postgresqlVertsion"
+    classpath "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
+    classpath "io.vertx:vertx-codegen:$vertxVersion"
+    classpath "com.google.inject:guice:4.2.3"
+  }
+}
+
+plugins {
+  id "com.diffplug.gradle.spotless" version "4.5.1" apply false
+  id "org.jetbrains.kotlin.jvm" version "1.5.10" apply false
+  id 'com.github.johnrengelman.shadow' version '6.1.0' apply(false)
+  id "java"
+  id 'application'
+  id "org.jetbrains.kotlin.kapt" version "1.5.10" apply false
+  id "io.franzbecker.gradle-lombok" version "4.0.0" apply(false)
+}
+
+group = "org.start2do"
+version = "1.0-SNAPSHOT"
+
+
+allprojects {
+  apply {
+    plugin "org.jetbrains.kotlin.jvm"
+    plugin "org.gradle.java"
+    plugin "org.gradle.application"
+    plugin 'kotlin-kapt'
+    plugin "com.diffplug.gradle.spotless"
+    plugin "io.franzbecker.gradle-lombok"
+  }
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+    jcenter()
+  }
+  test {
+    useJUnitPlatform()
+  }
+  spotless {
+//    ratchetFrom 'origin/master'
+    java {
+      importOrder()
+      removeUnusedImports()
+      googleJavaFormat()
+      licenseHeader '/*  大道至简 (C)$YEAR */'
+    }
+    kotlin {
+      ktlint('0.37.2').userData('indent_size': '2', 'continuation_indent_size': '2', 'disabled_rules': 'no-wildcard-imports')
+      licenseHeader '/*  大道至简 (C)$YEAR */'
+    }
+  }
+
+
+}
+
+subprojects {
+
+
+  dependencies {
+    implementation group: 'org.apache.ignite', name: 'ignite-log4j2', version: '2.9.0'
+    "implementation"("org.apache.ignite:ignite-core:$igniteVersion")
+    implementation("org.apache.ignite:ignite-log4j:$igniteVersion")
+    "implementation"("org.apache.ignite:ignite-indexing:$igniteVersion")
+    "implementation"("io.vertx:vertx-ignite:$vertxVersion") {
+      exclude group: "org.apache.ignite"
+    }
+    "implementation"("io.vertx:vertx-zookeeper:$vertxVersion") {
+      exclude group: "org.slf4j"
+      exclude group: "log4j"
+    }
+    "implementation"("org.reflections:reflections:0.9.12")
+    "implementation"("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    "implementation"("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    "implementation"("io.vertx:vertx-config:$vertxVersion")
+    "implementation"("io.vertx:vertx-circuit-breaker:$vertxVersion")
+    "implementation"("io.vertx:vertx-lang-kotlin:$vertxVersion")
+    "implementation"("io.vertx:vertx-config:$vertxVersion")
+    implementation group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
+
+
+    testCompile "io.vertx:vertx-unit:$vertxVersion"
+    "testImplementation"("io.vertx:vertx-junit5:$vertxVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
+
+//    "implementation"("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
+    "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2")
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.2"
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.3")
+    compile group: 'com.google.inject', name: 'guice', version: '4.2.3'
+
+    implementation "io.vertx:vertx-service-discovery:$vertxVersion"
+    implementation "io.vertx:vertx-service-proxy:$vertxVersion"
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    compile "org.start2do:utils:0.0.1-SNAPSHOT"
+
+  }
+  def env = System.getProperty("env") ?: "dev"
+  println "当前打包环境为:$env"
+  sourceSets {
+    main {
+      resources {
+        srcDirs "src/main/profile/${env}"
+      }
+    }
+  }
+  def out_path = "./"
+  if (file("/Volumes/RamDisk/Caches").exists()) {
+    out_path = "/Volumes/RamDisk/Caches/db"
+  }
+  apply {
+    plugin "com.github.johnrengelman.shadow"
+  }
+  ext {
+    set("out_path", out_path)
+    set("vertxVersion", vertxVersion)
+    set("junitJupiterVersion", junitJupiterVersion)
+    set("kotlinVersion", kotlinVersion)
+  }
+  compileKotlin {
+    kotlinOptions {
+      jvmTarget = "11"
+    }
+  }
+  compileTestKotlin {
+    kotlinOptions {
+      jvmTarget = "11"
+    }
+  }
+
+}
+
+//设置输出目录
+def out_path = "${project.properties["out_path"]}$group"
+
+
+sourceSets {
+  main {
+    output.resourcesDir = file(out_path)
+    java.outputDir = file(out_path)
+  }
+}
+compileKotlin {
+  destinationDir = file(out_path)
+}
+
+task buildProd {
+  System.setProperty("env", "prod")
+  ext {
+    env = "prod"
+  }
+  dependsOn ":vertx-core:kaptGenerateStubsKotlin"
+  dependsOn ":vertx-core:kaptKotlin"
+  dependsOn ":vertx-core:compileKotlin"
+  dependsOn ":vertx-core:compileJava"
+  dependsOn ":vertx-core:processResources"
+  dependsOn ":vertx-core:classes"
+  dependsOn ":api:jar"
+//
+  dependsOn ":api:kaptGenerateStubsKotlin"
+  dependsOn ":api:kaptKotlin"
+  dependsOn ":api:compileKotlin"
+  dependsOn ":api:compileJava"
+  dependsOn ":api:processResources"
+  dependsOn ":api:classes"
+  dependsOn ":api:jar"
+//
+  dependsOn ":db:kaptGenerateStubsKotlin"
+  dependsOn ":db:kaptKotlin"
+  dependsOn ":db:compileKotlin"
+  dependsOn ":db:compileJava"
+  dependsOn ":db:processResources"
+  dependsOn ":db:classes"
+  dependsOn ":db:shadowJar"
+//
+  dependsOn ":controller:kaptGenerateStubsKotlin"
+  dependsOn ":controller:kaptKotlin"
+  dependsOn ":controller:compileKotlin"
+  dependsOn ":controller:compileJava"
+  dependsOn ":controller:processResources"
+  dependsOn ":controller:classes"
+  dependsOn ":controller:shadowJar"
+}
+
+task runDev {
+  dependsOn ":db:run"
+  dependsOn ":controller:run"
+}
+
+
