@@ -25,7 +25,7 @@ import java.net.URL
  * @date 2021/3/13:17:47
  */
 abstract class AbsBaseVerticle : AbstractVerticle() {
-  private val logger = Log4j2LogDelegateFactory().createDelegate(Global.SYS)
+  protected val logger = Log4j2LogDelegateFactory().createDelegate(Global.SYS)
   open fun authInitBefore() {}
   open fun firstInit() {}
   open fun startAfter() {}
