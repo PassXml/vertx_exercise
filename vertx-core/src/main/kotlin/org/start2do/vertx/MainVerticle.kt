@@ -18,6 +18,7 @@ import org.start2do.vertx.Top.LongTimeExecutor
 import org.start2do.vertx.Top.TopClusterManager
 import org.start2do.vertx.utils.ConfigFileReadUtils
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -36,11 +37,13 @@ open class MainVerticle : AbstractVerticle() {
     super.init(vertx, context)
     Runtime.getRuntime().addShutdownHook(object : Thread() {
       override fun run() {
+        val countDownLatch = CountDownLatch(IDS.size)
         IDS.forEach {
-          runBlocking {
-            vertx.undeploy(it.key).await()
+          vertx.undeploy(it.key).onComplete {
+            countDownLatch.countDown()
           }
         }
+        countDownLatch.await(15, TimeUnit.SECONDS)
         vertx.close()
       }
     })
@@ -95,7 +98,7 @@ open class MainVerticle : AbstractVerticle() {
         logger.error(it.cause(), it.cause())
       }
       val mergeInJson = json.mergeIn(it.result())
-      val global = Global(json)
+      val global = Global(mergeInJson)
       logger.info("Vert.x是否为集群模式:{}", vertx.isClustered)
       global.verticle.forEach { str ->
         vertx.deployVerticle(str, DeploymentOptions().setConfig(mergeInJson)) { asyncResult ->

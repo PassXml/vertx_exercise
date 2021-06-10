@@ -1,11 +1,13 @@
 plugins {
   id 'java'
+  id 'maven'
 }
 
 group 'org.start2do'
 version '1.0-SNAPSHOT'
 
 repositories {
+  mavenLocal()
   mavenCentral()
 }
 
@@ -15,11 +17,11 @@ dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
   annotationProcessor "io.vertx:vertx-web-api-service:${vertxVersion}"
-  api "io.vertx:vertx-web-api-service:${vertxVersion}"
-  api "io.vertx:vertx-web-openapi:$vertxVersion"
-  api "io.vertx:vertx-web:$vertxVersion"
-  api("io.vertx:vertx-auth-jwt:$vertxVersion")
-  api("io.vertx:vertx-auth-common:$vertxVersion")
+  compile "io.vertx:vertx-web-api-service:${vertxVersion}"
+  compile "io.vertx:vertx-web-openapi:$vertxVersion"
+  compile "io.vertx:vertx-web:$vertxVersion"
+  implementation("io.vertx:vertx-auth-jwt:$vertxVersion")
+  compile("io.vertx:vertx-auth-common:$vertxVersion")
 }
 
 test {

@@ -14,15 +14,12 @@ class Global(jsonObject: JsonObject) {
   val scanPackage = getArray(jsonObject.getJsonArray(SERVICE_SCAN_PACKAGES))
   val serviceAddress: String = jsonObject.getString(SERVICE_ADDRESS)
   val verticle = getArray(jsonObject.getJsonArray(VERTICLE))
+  private fun getArray(array: JsonArray): Array<String> {
+    return array.map { it.toString() }.toTypedArray()
+  }
 
   companion object {
-    private fun getArray(array: JsonArray): Array<String> {
-      val result = mutableListOf<String>()
-      for (i in 0 until array.size()) {
-        result.plusElement(array.getString(i))
-      }
-      return result.toTypedArray()
-    }
+
 
     const val SYS: String = "[SYS]"
     const val ENV_DEV = "dev"
@@ -48,7 +45,7 @@ class EventBusSetting(jsonObject: JsonObject) {
   val enable = eventbusSetting.getBoolean(ENABLE, false)
   val haGroup = eventbusSetting.getString(HAGROUP, "vertx")
   val type = eventbusSetting.getString(TYPE)
-  val host = eventbusSetting.getString(ENABLE, "127.0.0.1")
+  val host = eventbusSetting.getString(HOST, "127.0.0.1")
   val port = eventbusSetting.getInteger(PORT, 8000)
   val publicHost = eventbusSetting.getString(PUBLICHOST, host)
   val publicPort = eventbusSetting.getInteger(PUBLICPORT, port)

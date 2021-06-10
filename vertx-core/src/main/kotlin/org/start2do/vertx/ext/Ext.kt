@@ -101,12 +101,16 @@ inline fun <T, R : AbsService> R.blockingHandler(crossinline block: suspend (R) 
 inline fun <T> createFuture(
   crossinline block: suspend (CoroutineScope) -> T
 ): Future<T> = Future.future { promise ->
-  CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler()) {
-    try {
-      promise.complete(block(this))
-    } catch (e: Exception) {
-      promise.fail(e)
-    }
+  CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler(promise)) {
+    promise.complete(block(this))
+  }
+}
+
+inline fun createAsyncTask(
+  crossinline block: suspend (CoroutineScope) -> Unit
+) {
+  GlobalScope.launch {
+    block(this)
   }
 }
 

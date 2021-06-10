@@ -31,6 +31,6 @@ object WebSetting {
  *  客户端相关
  */
 object WehClientInfo {
-  const val requestId = "Request-id"
-  const val time = "Request-time"
+  const val requestId = "request-id"
+  const val time = "request-time"
 }

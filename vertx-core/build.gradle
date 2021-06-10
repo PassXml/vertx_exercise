@@ -13,11 +13,22 @@ repositories {
 
 
 dependencies {
-  api(project(":vertx-core-api"))
-  api "io.vertx:vertx-codegen:$vertxVersion"
   compileOnly "net.cinnom:nano-cuckoo:3.0.2"
   compileOnly "io.vertx:vertx-web-api-service:${vertxVersion}"
-
+  implementation project(":vertx-core-api")
+  compile "io.vertx:vertx-codegen:$vertxVersion"
+  compile group: 'com.google.inject', name: 'guice', version: '5.0.1'
+  compile "io.vertx:vertx-circuit-breaker:$vertxVersion"
+  compile "io.vertx:vertx-lang-kotlin:$vertxVersion"
+  compile "io.vertx:vertx-config:$vertxVersion"
+  compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
+  compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
+  compile "io.vertx:vertx-core:$vertxVersion"
+  compile "io.vertx:vertx-service-proxy:$vertxVersion"
+  compile group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
+//  implementation "io.vertx:vertx-service-discovery:$vertxVersion"
 
 }
 def out_path = "${project.properties["out_path"]}$group"

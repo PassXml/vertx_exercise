@@ -3,6 +3,7 @@ package org.start2do.vertx.web.ext
 
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.Future
+import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.json.Json
@@ -82,8 +83,17 @@ fun CCoroutineExceptionHandler(rc: RoutingContext): CoroutineContext {
   return CoroutineExceptionHandler { _, e ->
     MainVerticle.logger.error("CCoroutineExceptionHandler(RoutingContext)")
     MainVerticle.logger.error(e.message, e)
-    (e.cause?.message ?: e.stackTraceToString())
-      .outJson(rc, HttpResponseStatus.INTERNAL_SERVER_ERROR)
+    when (e) {
+      is ReplyException -> {
+        ResultMessageDto.build(e.failureCode(), e.message)
+          .outJson(rc, HttpResponseStatus.INTERNAL_SERVER_ERROR)
+      }
+      else -> {
+        (e.cause?.message ?: e.stackTraceToString())
+          .outJson(rc, HttpResponseStatus.INTERNAL_SERVER_ERROR)
+      }
+    }
+
   }
 }
 

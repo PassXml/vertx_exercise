@@ -1,5 +1,6 @@
 plugins {
   id 'java'
+  id 'maven'
 }
 
 group 'org.start2do'
@@ -15,10 +16,11 @@ dependencies {
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
   implementation(project(":vertx-core-api"))
   implementation(project(":vertx-core"))
-  api "org.flywaydb:flyway-core:6.5.2"
-  api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
+  compile "org.flywaydb:flyway-core:6.5.2"
+  compile "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
   compileOnly "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
   compileOnly("io.vertx:vertx-pg-client:$vertxVersion")
+  compile group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
 
 }
 
