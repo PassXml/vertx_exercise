@@ -38,5 +38,6 @@
     "org.start2do.vertx.service",
     "org.start2do.vertx.controller"
   ],
-  "serviceAddress": "service"
+  "serviceAddress": "service",
+  "eventLoopPoolSize": 20
 }

@@ -1,6 +1,7 @@
 /*  大道至简 (C)2020 */
 package org.start2do.vertx
 
+import io.vertx.core.VertxOptions
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
@@ -50,6 +51,7 @@ class EventBusSetting(jsonObject: JsonObject) {
   val publicHost = eventbusSetting.getString(PUBLICHOST, host)
   val publicPort = eventbusSetting.getInteger(PUBLICPORT, port)
   val connectTimeout = eventbusSetting.getInteger(CONNECTTIMEOUT, 3000)
+  val eventLoopPoolSize = eventbusSetting.getInteger(EVENTLOOPPOOLSIZE, VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE)
 
   companion object {
     const val MAIN = "eventBus"
@@ -61,6 +63,7 @@ class EventBusSetting(jsonObject: JsonObject) {
     const val PORT = "port"
     const val PUBLICPORT = "publicPort"
     const val CONNECTTIMEOUT = "connectTimeout"
+    const val EVENTLOOPPOOLSIZE = "eventLoopPoolSize"
   }
 
   fun getSSLConfig(): SSL = SSL(eventbusSetting)

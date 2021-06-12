@@ -33,6 +33,7 @@ object VertxOptionBuilder {
       "io.vertx.core.logging.Log4j2LogDelegateFactory"
     )
     val eventBusSetting = EventBusSetting(config)
+    setVertxOption(option, eventBusSetting)
     if (eventBusSetting.enable) {
       logger.info("启用集群总线")
       val clusterType = eventBusSetting.type
@@ -55,6 +56,10 @@ object VertxOptionBuilder {
     }
   }
 
+  private fun setVertxOption(options: VertxOptions, eventBusSetting: EventBusSetting) {
+    options.eventLoopPoolSize = eventBusSetting.eventLoopPoolSize
+  }
+
   private fun initZookeeper(options: VertxOptions, configJson: EventBusSetting.ZookeeperConfig) {
     val clusterManager = ZookeeperClusterManager(
       configJson.zookeeperConfig
@@ -74,7 +79,6 @@ object VertxOptionBuilder {
     tcpDiscoverySpi.localPort = 48500
     tcpDiscoverySpi.localPortRange = 20
     val busAddress = igniteConfig.addresses
-
     /** 设置集群地址 */
     val tcpDiscoveryMulticastIpFinder = TcpDiscoveryMulticastIpFinder()
     if (busAddress != null) {
