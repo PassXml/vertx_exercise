@@ -70,7 +70,9 @@ object ControllerManager {
         logger.info("处理URL为:{}", formatUrl)
         if (controller.useRoute) {
           logger.info("useRoute")
-          method.invoke(instance, route.pathRegex(formatUrl))
+          method.invoke(instance, route.pathRegex(formatUrl).handler {
+            setCountInfo(it)
+          })
         } else if (controller.useWebSocket) {
           logger.info("useWebSocket")
           route.pathRegex(formatUrl).handler { rc ->

@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject
 import kotlinx.coroutines.*
 import org.start2do.api.AbsService
 import org.start2do.vertx.MainVerticle
+import org.start2do.vertx.Top
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 
@@ -79,7 +80,7 @@ fun CCoroutineExceptionHandler(): CoroutineContext {
 }
 
 inline fun <T> createResultHandle(handle: Handler<AsyncResult<T>>, crossinline block: suspend (CoroutineScope) -> T) {
-  CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler(handle)) {
+  CoroutineScope(Top.coroutineDispatcher).launch(CCoroutineExceptionHandler(handle)) {
     handle.handle(Future.succeededFuture(block(this)))
   }
 }
@@ -101,7 +102,7 @@ inline fun <T, R : AbsService> R.blockingHandler(crossinline block: suspend (R) 
 inline fun <T> createFuture(
   crossinline block: suspend (CoroutineScope) -> T
 ): Future<T> = Future.future { promise ->
-  CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler(promise)) {
+  CoroutineScope(Top.coroutineDispatcher).launch(CCoroutineExceptionHandler(promise)) {
     promise.complete(block(this))
   }
 }
@@ -109,7 +110,7 @@ inline fun <T> createFuture(
 inline fun createAsyncTask(
   crossinline block: suspend (CoroutineScope) -> Unit
 ) {
-  GlobalScope.launch {
+  CoroutineScope(Top.coroutineDispatcher).launch(Top.CCoroutineExceptionHandler) {
     block(this)
   }
 }

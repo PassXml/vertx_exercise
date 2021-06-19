@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Log4j2LogDelegateFactory
 import io.vertx.core.spi.cluster.NodeListener
 import io.vertx.kotlin.coroutines.await
+import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.runBlocking
 import org.start2do.vertx.Top.Breaker
 import org.start2do.vertx.Top.LongTimeExecutor
@@ -35,6 +36,7 @@ open class MainVerticle : AbstractVerticle() {
 
   override fun init(vertx: Vertx, context: Context) {
     super.init(vertx, context)
+    Top.coroutineDispatcher = vertx.dispatcher()
     Runtime.getRuntime().addShutdownHook(object : Thread() {
       override fun run() {
         val countDownLatch = CountDownLatch(IDS.size)

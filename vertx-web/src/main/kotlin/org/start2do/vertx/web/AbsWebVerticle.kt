@@ -20,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.start2do.vertx.Global
 import org.start2do.vertx.MainVerticle
+import org.start2do.vertx.Top
 import org.start2do.vertx.ext.CCoroutineExceptionHandler
 import org.start2do.vertx.inject.InjectUtils
 import org.start2do.vertx.sys.AbsBaseVerticle
@@ -63,7 +64,7 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
 
   open fun buildRouter() {
     val countDownLatch = CountDownLatch(1)
-    CoroutineScope(SupervisorJob()).launch(CCoroutineExceptionHandler()) {
+    CoroutineScope(Top.coroutineDispatcher).launch(CCoroutineExceptionHandler()) {
       val webSetting = config().getJsonObject(WebSetting.main) ?: JsonObject()
       val config = webSetting.getJsonObject(WebSetting.Router.main) ?: JsonObject()
       if (config.getBoolean(WebSetting.Router.enable, false)) {
