@@ -40,11 +40,6 @@ public class Mains {
     @Override
     public void handler(@NotNull Buffer buffer, @NotNull NetSocket sock) {
       getLogger().info("{},发送了,{}", sock.writeHandlerID(), buffer.toString());
-      BuildersKt.launch(
-        GlobalScope.INSTANCE,
-        Top.INSTANCE.getCCoroutineExceptionHandler(),
-        CoroutineStart.DEFAULT,
-        (coroutineScope, continuation) -> test(continuation));
     }
   }
 }

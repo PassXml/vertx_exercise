@@ -50,13 +50,8 @@ abstract class TCPVerticle : AbsBaseVerticle() {
 
   open abstract fun handler(buffer: Buffer, sock: NetSocket)
 
-  suspend fun test() {
-    println("运行了")
-  }
-
   override fun start() {
     super.start()
-    vertx.dispatcher()
     createFuture {
       val options = getOption()
       val netServer = vertx.createNetServer(options)
