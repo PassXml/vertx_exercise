@@ -1,5 +1,5 @@
 /*  大道至简 (C)2020 */
-package org.start2do.vertx.dto
+package org.start2do.vertx.pojo
 
 /**
  * @Author HelloBox@outlook.com

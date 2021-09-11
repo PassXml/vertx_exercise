@@ -59,12 +59,8 @@ object ServiceManager {
         continue
       }
       for (face in clazz.interfaces) {
-        var found = false
-        for (clazz in annotationSet) {
-          face.getAnnotation(clazz) ?: continue
-          found = true
-        }
-        if (found) {
+        for (clazz1 in annotationSet) {
+          face.getAnnotation(clazz1) ?: continue
           val serviceName = face.simpleName
           val registerInfo = InjectUtils.get(clazz).register(serviceBinder.setAddress("$address.$serviceName"))
           logger.info("推送服务{},{}", serviceName, registerInfo.isRegistered)
@@ -76,6 +72,7 @@ object ServiceManager {
             )
           )
           serviceNameSet.add(clazz.name)
+          break
         }
       }
     }

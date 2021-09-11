@@ -12,9 +12,8 @@ import io.vertx.kotlin.core.json.get
  */
 class Global(jsonObject: JsonObject) {
   val env: String = jsonObject.getString(ENV, ENV_DEV)
-  val scanPackage = getArray(jsonObject.getJsonArray(SERVICE_SCAN_PACKAGES))
-  val serviceAddress: String = jsonObject.getString(SERVICE_ADDRESS)
-  val verticle = getArray(jsonObject.getJsonArray(VERTICLE))
+  val serviceAddress: String = jsonObject.getString(SERVICE_ADDRESS, "service")
+  val verticleDeployment = jsonObject.getJsonObject(VERTICLEDEPLOYMENT, JsonObject())
   private fun getArray(array: JsonArray): Array<String> {
     return array.map { it.toString() }.toTypedArray()
   }
@@ -28,15 +27,10 @@ class Global(jsonObject: JsonObject) {
     const val ENV = "env"
 
     /**
-     *  扫描路径
-     */
-    const val SERVICE_SCAN_PACKAGES = "serviceScanPackages"
-
-    /**
      *  服务推送地址
      */
     const val SERVICE_ADDRESS = "serviceAddress"
-    const val VERTICLE = "verticle"
+    const val VERTICLEDEPLOYMENT = "verticleDeployment"
   }
 }
 

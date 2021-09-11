@@ -1,7 +1,7 @@
 /*  大道至简 (C)2021 */
 package org.start2do.vertx.db
 
-import org.start2do.vertx.dto.AutoConfiguration
+import org.start2do.vertx.pojo.AutoConfiguration
 
 /**
  * @Author passxml

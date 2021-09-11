@@ -12,9 +12,9 @@ import io.vertx.ext.auth.User
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.api.service.ServiceResponse
 import kotlinx.coroutines.CoroutineExceptionHandler
-import org.start2do.vertx.MainVerticle
-import org.start2do.vertx.dto.BusinessException
-import org.start2do.vertx.dto.ResultMessageDto
+import org.start2do.vertx.Top.logger
+import org.start2do.vertx.pojo.BusinessException
+import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.ext.toJsonObject
 import org.start2do.vertx.web.WebTop
 import org.start2do.vertx.web.utils.outJson
@@ -81,8 +81,8 @@ inline fun HttpServerRequest.getLoginInfo(): Future<User> {
 
 fun CCoroutineExceptionHandler(rc: RoutingContext): CoroutineContext {
   return CoroutineExceptionHandler { _, e ->
-    MainVerticle.logger.error("CCoroutineExceptionHandler(RoutingContext)")
-    MainVerticle.logger.error(e.message, e)
+    logger.error("CCoroutineExceptionHandler(RoutingContext)")
+    logger.error(e.message, e)
     when (e) {
       is ReplyException -> {
         ResultMessageDto.build(e.failureCode(), e.message)

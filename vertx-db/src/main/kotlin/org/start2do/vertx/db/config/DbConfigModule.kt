@@ -20,13 +20,14 @@ import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.db.*
 import org.start2do.vertx.db.factory.SQLDialectTransform
 import org.start2do.vertx.db.factory.SqlInstanceFactory
+import org.start2do.vertx.pojo.GuiceConfiguration
 import org.start2do.vertx.sys.BaseService
 
 /**
  * @Author Lijie
  * @date 2021/5/16:10:42
  */
-@org.start2do.api.GuiceConfiguration
+@GuiceConfiguration
 class DbConfigModule(private val jsonObject: JsonObject, private val vertx: Vertx) : AbstractModule() {
   companion object {
     private val logger = Log4j2LogDelegateFactory().createDelegate(DbConfigModule::class.java.name)

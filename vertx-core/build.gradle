@@ -1,6 +1,6 @@
 plugins {
   id 'java'
-  id 'maven'
+  id 'maven-publish'
 }
 
 group 'org.start2do'
@@ -10,12 +10,12 @@ repositories {
   jcenter()
   mavenCentral()
 }
-
+def igniteVersion = "2.9.1"
 
 dependencies {
   compileOnly "net.cinnom:nano-cuckoo:3.0.2"
   compileOnly "io.vertx:vertx-web-api-service:${vertxVersion}"
-  implementation project(":vertx-core-api")
+  compile project(":vertx-core-api")
   compile "io.vertx:vertx-codegen:$vertxVersion"
   compile group: 'com.google.inject', name: 'guice', version: '5.0.1'
   compile "io.vertx:vertx-circuit-breaker:$vertxVersion"
@@ -29,18 +29,32 @@ dependencies {
   compile group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
 //  implementation "io.vertx:vertx-service-discovery:$vertxVersion"
+  //集群
+  compileOnly group: 'org.apache.ignite', name: 'ignite-log4j2', version: '2.9.0'
+  compileOnly("org.apache.ignite:ignite-core:$igniteVersion")
+  compileOnly("org.apache.ignite:ignite-log4j:$igniteVersion")
+  compileOnly "org.apache.ignite:ignite-indexing:$igniteVersion"
+  compileOnly("io.vertx:vertx-ignite:$vertxVersion") {
+    exclude group: "org.apache.ignite"
+  }
+  compileOnly("io.vertx:vertx-zookeeper:$vertxVersion") {
+    exclude group: "org.slf4j"
+    exclude group: "log4j"
+  }
+  compile "org.start2do:utils:0.0.1-SNAPSHOT"
+  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
+  compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
 
 }
 def out_path = "${project.properties["out_path"]}$group"
 
-
-sourceSets {
-  main {
-    output.resourcesDir = file(out_path)
-    java.outputDir = file(out_path)
-  }
-}
-compileKotlin {
-  destinationDir = file(out_path)
-}
-mainClassName = ''
+//
+//sourceSets {
+//  main {
+//    output.resourcesDir = file(out_path)
+//    java.outputDir = file(out_path)
+//  }
+//}
+//compileKotlin {
+//  destinationDir = file(out_path)
+//}

@@ -7,16 +7,16 @@ import io.vertx.core.Context
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import io.vertx.core.logging.Log4j2LogDelegateFactory
 import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
-import org.start2do.api.GuiceConfiguration
+import org.start2do.vertx.pojo.GuiceConfiguration
 import org.start2do.utils.classutils.ClassUtils
 import org.start2do.vertx.*
-import org.start2do.vertx.dto.AutoConfiguration
-import org.start2do.vertx.dto.ServiceVerticle
+import org.start2do.vertx.pojo.AutoConfiguration
+import org.start2do.vertx.pojo.ServiceVerticle
+import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.inject.InjectUtils
 import java.net.URL
 
@@ -25,7 +25,7 @@ import java.net.URL
  * @date 2021/3/13:17:47
  */
 abstract class AbsBaseVerticle : AbstractVerticle() {
-  protected val logger = Log4j2LogDelegateFactory().createDelegate(Global.SYS)
+  protected open val logger = getLogger(Global.SYS)
   open fun authInitBefore() {}
   open fun firstInit() {}
   open fun startAfter() {}
@@ -37,15 +37,17 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
         ClasspathHelper.forPackage(it.toString())
       )
     }
-    Reflections(
-      ConfigurationBuilder().setScanners(SubTypesScanner()).addUrls(
-        packageSet
-      )
-    ).getSubTypesOf(AbstractModule::class.java).forEach {
-      val annotation = it.getAnnotation(GuiceConfiguration::class.java)
-      if (annotation != null) {
-        it.getDeclaredConstructor(JsonObject::class.java, Vertx::class.java)?.let { constructor ->
-          result.add(constructor.newInstance(config(), vertx))
+    if (packageSet.isNotEmpty()) {
+      Reflections(
+        ConfigurationBuilder().setScanners(SubTypesScanner()).addUrls(
+          packageSet
+        )
+      ).getSubTypesOf(AbstractModule::class.java).forEach {
+        val annotation = it.getAnnotation(GuiceConfiguration::class.java)
+        if (annotation != null) {
+          it.getDeclaredConstructor(JsonObject::class.java, Vertx::class.java)?.let { constructor ->
+            result.add(constructor.newInstance(config(), vertx))
+          }
         }
       }
     }
@@ -61,7 +63,7 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
 
   override fun start() {
     firstInit()
-    val packages = config().getJsonArray(Global.SERVICE_SCAN_PACKAGES) ?: JsonArray()
+    val packages = JsonArray()
     for (s in getAutoConfiguration()) {
       packages.add(s)
     }
@@ -76,7 +78,6 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
         ServiceManager.publish(address, packages.getString(i))
       }
     }
-
     super.start()
     startAfter()
   }

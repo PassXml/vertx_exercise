@@ -2,6 +2,7 @@
 package org.start2do.vertx.web
 
 import io.netty.handler.codec.http.HttpResponseStatus
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.authentication.AuthenticationProvider
@@ -16,15 +17,13 @@ import io.vertx.ext.web.validation.ParameterProcessorException
 import io.vertx.kotlin.coroutines.await
 import io.vertx.serviceproxy.ServiceException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import org.start2do.vertx.Global
-import org.start2do.vertx.MainVerticle
+import org.start2do.vertx.pojo.Configuration
 import org.start2do.vertx.Top
 import org.start2do.vertx.ext.CCoroutineExceptionHandler
+import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.inject.InjectUtils
 import org.start2do.vertx.sys.AbsBaseVerticle
-import org.start2do.vertx.web.ext.build
 import org.start2do.vertx.web.utils.ControllerManager
 import org.start2do.vertx.web.utils.outJson
 import java.util.concurrent.CountDownLatch
@@ -86,9 +85,9 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
     logger.info("[SYS]初始化错误处理器")
     val function = { rc: RoutingContext ->
       val failure = rc.failure()
-      logger.debug(failure.message, failure)
       when (failure) {
         is ParameterProcessorException -> {
+
           outJson(
             rc, HttpResponseStatus.BAD_REQUEST, code = -1,
             msg = when (failure.errorType) {
@@ -105,7 +104,15 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
           )
         }
         is BodyProcessorException -> {
-          logger.error("Request Content-Type Header:{}", failure.actualContentType)
+          logger.debug(
+            "{}({})\nQuery:{}\rBody:{}",
+            rc.request().path(),
+            rc.request().remoteAddress(),
+            rc.queryParams(),
+            rc.bodyAsString
+          )
+          logger.error("BodyProcessorException:{}", failure.message)
+          logger.error("${rc.request().path()}", failure)
           outJson(
             rc, HttpResponseStatus.BAD_REQUEST, code = -1,
             msg = when (failure.errorType) {
@@ -143,10 +150,16 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
   }
 
   final override fun start() {
-    val httpSetting = config().getJsonObject(WebSetting.main)
+    val httpSetting = config().getJsonObject(WebSetting.main, JsonObject())
     logger.info("[SYS]第一次初始化")
     firstInit()
-    val packages = config().getJsonArray(Global.SERVICE_SCAN_PACKAGES)
+    val packages = JsonArray()
+    this.javaClass.getAnnotation(Configuration::class.java)?.let {
+      packages.add(this.javaClass.`package`.name)
+      for (pkg in it.scanPackages) {
+        packages.add(pkg)
+      }
+    }
     logger.info("[SYS]初始化路由")
     buildRouter()
     logger.info("[SYS]初始化Guice")
@@ -163,11 +176,11 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
     val port = httpSetting.getInteger(WebSetting.port, 8080)
     initSysConfig(httpSetting)
     vertx.createHttpServer().requestHandler(router).listen(port).onSuccess {
-      MainVerticle.logger.info("[SYS]HTTP 服务监听于:{}", port)
+      logger.info("[SYS]HTTP 服务监听于:{}", port)
       super.start()
       startAfter()
     }.onFailure {
-      MainVerticle.logger.error("[SYS]服务启动失败,${it.message}", it)
+      logger.error("[SYS]服务启动失败,${it.message}", it)
     }
   }
 }

@@ -2,21 +2,19 @@ buildscript {
   ext {
     postgresqlVertsion = "42.2.14"
     JooqVertxVersion = "6.3.0"
-    kotlinVersion = "1.5.10"
-    vertxVersion = "4.1.0"
+    kotlinVersion = "1.5.30"
+    vertxVersion = "4.1.2"
     log4jVersion = "2.13.3"
     junitJupiterVersion = "5.6.0"
-    igniteVersion = "2.9.1"
   }
   repositories {
     mavenLocal()
     mavenCentral()
   }
   dependencies {
-//    classpath "org.start2do:codegen:1.0-SNAPSHOT"
     classpath "org.postgresql:postgresql:$postgresqlVertsion"
     classpath "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
-    classpath "io.vertx:vertx-codegen:$vertxVersion"
+//    classpath(project(":codeGen"))
   }
 }
 
@@ -38,7 +36,6 @@ allprojects {
   apply {
     plugin "org.jetbrains.kotlin.jvm"
     plugin "org.gradle.java"
-    plugin "org.gradle.application"
     plugin 'kotlin-kapt'
     plugin "com.diffplug.gradle.spotless"
     plugin "io.franzbecker.gradle-lombok"
@@ -79,24 +76,9 @@ subprojects {
     testImplementation "io.vertx:vertx-junit5:$vertxVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.2"
-    //自定义工具包
-    compile "org.start2do:utils:0.0.1-SNAPSHOT"
     //Jackson
     compileOnly "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.2"
-    //集群
-    compileOnly group: 'org.apache.ignite', name: 'ignite-log4j2', version: '2.9.0'
-    compileOnly("org.apache.ignite:ignite-core:$igniteVersion")
-    compileOnly("org.apache.ignite:ignite-log4j:$igniteVersion")
-    compileOnly "org.apache.ignite:ignite-indexing:$igniteVersion"
-    compileOnly("io.vertx:vertx-ignite:$vertxVersion") {
-      exclude group: "org.apache.ignite"
-    }
     compileOnly "com.fasterxml.jackson.core:jackson-databind:2.11.3"
-
-    compileOnly("io.vertx:vertx-zookeeper:$vertxVersion") {
-      exclude group: "org.slf4j"
-      exclude group: "log4j"
-    }
   }
   def env = System.getProperty("env") ?: "dev"
   println "当前打包环境为:$env"

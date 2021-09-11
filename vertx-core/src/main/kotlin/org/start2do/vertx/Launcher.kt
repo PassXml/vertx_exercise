@@ -20,39 +20,7 @@ import java.util.concurrent.TimeUnit
  * @Author passxml
  * @date 2020/9/1:12:45
  */
-class Launcher : VertxCommandLauncher, VertxLifecycleHooks {
-  constructor()
-
-  override fun afterConfigParsed(config: JsonObject?) {}
-  override fun afterStartingVertx(vertx: Vertx?) {}
-
-  override fun beforeDeployingVerticle(deploymentOptions: DeploymentOptions?) {}
-
-  override fun beforeStoppingVertx(vertx: Vertx?) {}
-
-  override fun afterStoppingVertx() {}
-  override fun handleDeployFailed(
-    vertx: Vertx,
-    mainVerticle: String?,
-    deploymentOptions: DeploymentOptions?,
-    cause: Throwable?
-  ) {
-    vertx.dispatcher().cancel(CancellationException("退出"))
-    vertx.close()
-  }
-
-  override fun beforeStartingVertx(options: VertxOptions) {
-    VertxOptionBuilder.build(
-      options,
-      JsonObject(
-        Buffer.buffer(
-          ConfigFileReadUtils.read("config.json").readAllBytes()
-        )
-      )
-    )
-    options.setBlockedThreadCheckInterval(30)
-      .blockedThreadCheckIntervalUnit = TimeUnit.SECONDS
-  }
+class Launcher : VertxCommandLauncher(), BaseRunner {
 
   companion object {
     @JvmStatic

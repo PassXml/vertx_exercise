@@ -24,8 +24,9 @@ import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.Global
 import org.start2do.vertx.Top
-import org.start2do.vertx.dto.ResultMessageDto
+import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.ext.createAsyncTask
+import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.inject.InjectUtils
 import org.start2do.vertx.web.WehClientInfo
 import java.io.ByteArrayOutputStream
@@ -40,7 +41,7 @@ import kotlin.reflect.jvm.kotlinFunction
  * @date 2020/9/3:14:14
  */
 object ControllerManager {
-  private val logger = Log4j2LogDelegateFactory().createDelegate(Global.SYS)
+  private val logger = getLogger("WebLog")
   private val initSet = mutableSetOf<String>()
   private val urlSet = mutableSetOf<String>()
   fun start(router: Router, vertx: Vertx, packages: String) {
