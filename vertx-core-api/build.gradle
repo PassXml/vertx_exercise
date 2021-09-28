@@ -1,6 +1,7 @@
 plugins {
   id "java"
   id "maven-publish"
+  id 'java-library'
 }
 
 group = "org.start2do"
@@ -35,4 +36,15 @@ compileKotlin {
 }
 compileJava {
   destinationDir = file(out_path)
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = groupId
+      artifactId = project.name
+      version = version
+      from components.java
+    }
+  }
 }

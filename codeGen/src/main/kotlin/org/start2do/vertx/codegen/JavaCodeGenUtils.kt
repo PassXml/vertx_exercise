@@ -294,7 +294,3 @@ object CodeGenDecodeFactory {
   }
 }
 
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.CONSTRUCTOR)
-annotation class Start2doCodeGen(
-  val force: Boolean = false
-)

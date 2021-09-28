@@ -1,12 +1,14 @@
 plugins {
   id 'java'
+  id 'java-library'
+  id 'maven-publish'
 }
 
 group 'org.start2do'
 version '1.0-SNAPSHOT'
 
 repositories {
-  mavenCentral()
+  mavenLocal()
   mavenCentral()
 }
 
@@ -14,10 +16,21 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib"
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-  implementation(project(":vertx-core-api"))
-  implementation(project(":vertx-core"))
+  compileOnly project(":vertx-core-api")
+  compileOnly project(":vertx-core")
 }
 
 test {
   useJUnitPlatform()
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = groupId
+      artifactId = project.name
+      version = version
+      from components.java
+    }
+  }
 }

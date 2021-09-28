@@ -1,13 +1,14 @@
 plugins {
   id 'java'
   id 'maven-publish'
+  id 'java-library'
 }
 
 group 'org.start2do'
 version '1.0-SNAPSHOT'
 
 repositories {
-  jcenter()
+  mavenLocal()
   mavenCentral()
 }
 def igniteVersion = "2.9.1"
@@ -15,20 +16,20 @@ def igniteVersion = "2.9.1"
 dependencies {
   compileOnly "net.cinnom:nano-cuckoo:3.0.2"
   compileOnly "io.vertx:vertx-web-api-service:${vertxVersion}"
-  compile project(":vertx-core-api")
-  compile "io.vertx:vertx-codegen:$vertxVersion"
-  compile group: 'com.google.inject', name: 'guice', version: '5.0.1'
-  compile "io.vertx:vertx-circuit-breaker:$vertxVersion"
-  compile "io.vertx:vertx-lang-kotlin:$vertxVersion"
-  compile "io.vertx:vertx-config:$vertxVersion"
-  compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
-  compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
-  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
-  compile "io.vertx:vertx-core:$vertxVersion"
-  compile "io.vertx:vertx-service-proxy:$vertxVersion"
-  compile group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
-//  implementation "io.vertx:vertx-service-discovery:$vertxVersion"
+  implementation project(":vertx-core-api")
+  compileOnly "io.vertx:vertx-codegen:$vertxVersion"
+  compileOnly "io.vertx:vertx-service-proxy:$vertxVersion"
+  api group: 'com.google.inject', name: 'guice', version: '5.0.1'
+  api "io.vertx:vertx-circuit-breaker:$vertxVersion"
+  api "io.vertx:vertx-lang-kotlin:$vertxVersion"
+  api "io.vertx:vertx-config:$vertxVersion"
+  api "org.apache.logging.log4j:log4j-api:$log4jVersion"
+  api "org.apache.logging.log4j:log4j-core:$log4jVersion"
+  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
+  api "io.vertx:vertx-core:$vertxVersion"
+  api group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
+  api "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
+//  api "io.vertx:vertx-service-discovery:$vertxVersion"
   //集群
   compileOnly group: 'org.apache.ignite', name: 'ignite-log4j2', version: '2.9.0'
   compileOnly("org.apache.ignite:ignite-core:$igniteVersion")
@@ -41,9 +42,9 @@ dependencies {
     exclude group: "org.slf4j"
     exclude group: "log4j"
   }
-  compile "org.start2do:utils:0.0.1-SNAPSHOT"
-  compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
-  compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
+  api "org.start2do:utils:0.0.1-SNAPSHOT"
+  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
+  api "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
 
 }
 def out_path = "${project.properties["out_path"]}$group"
@@ -58,3 +59,14 @@ def out_path = "${project.properties["out_path"]}$group"
 //compileKotlin {
 //  destinationDir = file(out_path)
 //}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = groupId
+      artifactId = project.name
+      version = version
+      from components.java
+    }
+  }
+}

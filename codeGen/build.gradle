@@ -16,8 +16,8 @@ dependencies {
   compileOnly "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
   //    代码生成
   compileOnly "io.vertx:vertx-codegen:$vertxVersion"
-  compile group: 'org.jboss.forge.roaster', name: 'roaster-api', version: '2.22.3.Final'
-  compile group: 'org.jboss.forge.roaster', name: 'roaster-jdt', version: '2.22.3.Final'
+  api("org.jboss.forge.roaster:roaster-api:2.22.3.Final")
+  api("org.jboss.forge.roaster:roaster-jdt:2.22.3.Final")
 }
 
 test {
@@ -25,4 +25,15 @@ test {
 }
 application {
   mainClassName("org.start2do.vertx.utils.JavaCodeGenUtils")
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = groupId
+      artifactId = project.name
+      version = version
+      from components.java
+    }
+  }
 }

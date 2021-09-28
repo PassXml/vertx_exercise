@@ -11,7 +11,6 @@ import kotlinx.coroutines.future.future
 import org.start2do.vertx.ext.createFuture
 import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.sys.AbsBaseVerticle
-import kotlin.math.log
 
 /**
  * @Author Lijie
@@ -29,7 +28,7 @@ abstract class TCPVerticle : AbsBaseVerticle() {
   }
 
   open fun exceptionHandle(throwable: Throwable) {
-    logger.error(throwable.message, throwable)
+    Logger.error(throwable.message, throwable)
   }
 
   open fun closeHandle(sock: NetSocket) {

@@ -1,6 +1,7 @@
 plugins {
   id 'java'
   id 'maven-publish'
+  id 'java-library'
 }
 
 group 'org.start2do'
@@ -12,18 +13,28 @@ repositories {
 }
 
 dependencies {
-  compile(project(":vertx-core-api"))
-  compile(project(":vertx-core"))
+  compileOnly(project(":vertx-core-api"))
+  compileOnly(project(":vertx-core"))
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
   annotationProcessor "io.vertx:vertx-web-api-service:${vertxVersion}"
-  compile "io.vertx:vertx-web-api-service:${vertxVersion}"
-  compile "io.vertx:vertx-web-openapi:$vertxVersion"
-  compile "io.vertx:vertx-web:$vertxVersion"
-  implementation("io.vertx:vertx-auth-jwt:$vertxVersion")
-  compile("io.vertx:vertx-auth-common:$vertxVersion")
+  compileOnly "io.vertx:vertx-web-api-service:${vertxVersion}"
+  api "io.vertx:vertx-web-openapi:$vertxVersion"
+  api "io.vertx:vertx-web:$vertxVersion"
+  compileOnly("io.vertx:vertx-auth-jwt:$vertxVersion")
+  api("io.vertx:vertx-auth-common:$vertxVersion")
 }
 
 test {
   useJUnitPlatform()
+}
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = groupId
+      artifactId = project.name
+      version = version
+      from components.java
+    }
+  }
 }

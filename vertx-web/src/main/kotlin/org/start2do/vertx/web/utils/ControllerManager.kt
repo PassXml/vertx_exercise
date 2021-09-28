@@ -175,7 +175,7 @@ object ControllerManager {
     rc.response().putHeader(WehClientInfo.requestId, requestId)
     rc.response().endHandler {
       logger.info(
-        "Request:{},请求:{},耗时:{}ms",
+        "RequestID:{},请求:{},耗时:{}ms",
         rc.get<String>(WehClientInfo.requestId),
         rc.request().uri(),
         System.currentTimeMillis() - rc.get<Long>(WehClientInfo.time)

@@ -3,9 +3,10 @@ buildscript {
     postgresqlVertsion = "42.2.14"
     JooqVertxVersion = "6.3.0"
     kotlinVersion = "1.5.30"
-    vertxVersion = "4.1.2"
+    vertxVersion = "4.1.4"
     log4jVersion = "2.13.3"
     junitJupiterVersion = "5.6.0"
+    javaVersion = "11"
   }
   repositories {
     mavenLocal()
@@ -20,11 +21,10 @@ buildscript {
 
 plugins {
   id "com.diffplug.gradle.spotless" version "4.5.1" apply false
-  id "org.jetbrains.kotlin.jvm" version "1.5.10" apply false
+  id "org.jetbrains.kotlin.jvm" version "1.5.31" apply false
   id 'com.github.johnrengelman.shadow' version '6.1.0' apply(false)
   id "java"
-  id 'application'
-  id "org.jetbrains.kotlin.kapt" version "1.5.10" apply false
+  id "org.jetbrains.kotlin.kapt" version "1.5.31" apply false
   id "io.franzbecker.gradle-lombok" version "4.0.0" apply(false)
 }
 
@@ -46,7 +46,6 @@ allprojects {
     maven {
       url "https://plugins.gradle.org/m2/"
     }
-    jcenter()
   }
   test {
     useJUnitPlatform()
@@ -102,14 +101,17 @@ subprojects {
     set("junitJupiterVersion", junitJupiterVersion)
     set("kotlinVersion", kotlinVersion)
   }
+  compileJava {
+    sourceCompatibility = javaVersion
+  }
   compileKotlin {
     kotlinOptions {
-      jvmTarget = "11"
+      jvmTarget = javaVersion
     }
   }
   compileTestKotlin {
     kotlinOptions {
-      jvmTarget = "11"
+      jvmTarget = javaVersion
     }
   }
 
@@ -130,9 +132,9 @@ compileKotlin {
 }
 
 task mavenInstall {
-  dependsOn ":vertx-core-api:install"
-  dependsOn ":vertx-core:install"
-  dependsOn ":vertx-db:install"
-  dependsOn ":vertx-web:install"
-  dependsOn ":codeGen:install"
+  dependsOn ":vertx-core-api:publishToMavenLocal"
+  dependsOn ":vertx-core:publishToMavenLocal"
+  dependsOn ":vertx-web:publishToMavenLocal"
+  dependsOn ":vertx-db:publishToMavenLocal"
+  dependsOn ":codeGen:publishToMavenLocal"
 }
