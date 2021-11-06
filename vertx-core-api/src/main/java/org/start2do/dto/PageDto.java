@@ -9,9 +9,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /** @author HelloBox@outlook.com */
 @DataObject
+@Setter
+@Getter
 public class PageDto {
   private int cur;
   private Long total;
@@ -82,30 +86,5 @@ public class PageDto {
     jsonObject.put("total", total);
     jsonObject.put("result", array);
     return jsonObject;
-  }
-
-  public void setCur(int cur) {
-    this.cur = cur;
-  }
-
-  public Long getTotal() {
-    return total;
-  }
-
-  public void setTotal(Long total) {
-    this.total = total;
-  }
-
-  public JsonArray getArray() {
-    return array;
-  }
-
-  public void setArray(JsonArray array) {
-    this.array = array;
-  }
-
-  @Override
-  public String toString() {
-    return "PageDtos{" + "cur=" + cur + ", total=" + total + ", result=" + array + '}';
   }
 }

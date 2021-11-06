@@ -2,8 +2,12 @@ package org.start2do.dto;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import lombok.Getter;
+import lombok.Setter;
 
 @DataObject
+@Setter
+@Getter
 public class AttachmentPojo {
   private Long id;
   private String path;
@@ -39,43 +43,4 @@ public class AttachmentPojo {
     this.md5 = md5;
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getPath() {
-    return path;
-  }
-
-  public void setPath(String path) {
-    this.path = path;
-  }
-
-  public String getFileName() {
-    return fileName;
-  }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
-  }
-
-  public Integer getUserId() {
-    return userId;
-  }
-
-  public void setUserId(Integer userId) {
-    this.userId = userId;
-  }
-
-  public String getMd5() {
-    return md5;
-  }
-
-  public void setMd5(String md5) {
-    this.md5 = md5;
-  }
 }

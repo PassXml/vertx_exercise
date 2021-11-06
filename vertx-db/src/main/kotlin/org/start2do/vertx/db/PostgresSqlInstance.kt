@@ -7,7 +7,7 @@ import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlClient
 import io.vertx.sqlclient.SqlConnectOptions
-import org.start2do.vertx.db.`interface`.SqlInstance
+import org.start2do.vertx.db.interfaces.SqlInstance
 
 /**
  * @Author Lijie

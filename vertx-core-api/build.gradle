@@ -24,9 +24,9 @@ sourceSets {
   }
 }
 dependencies {
-  annotationProcessor 'org.projectlombok:lombok:1.18.12'
-  compileOnly("org.projectlombok:lombok:1.18.12")
-  kapt("org.projectlombok:lombok:1.18.12")
+  annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+  compileOnly("org.projectlombok:lombok:$lombokVersion")
+  kapt("org.projectlombok:lombok:$lombokVersion")
   compileOnly "io.vertx:vertx-codegen:$vertxVersion"
   compileOnly "io.vertx:vertx-core:$vertxVersion"
 }

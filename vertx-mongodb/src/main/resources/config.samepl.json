@@ -1,0 +1,6 @@
+{
+  "mongodb": {
+    "db_name": "",
+    "connection_string":""
+  }
+}

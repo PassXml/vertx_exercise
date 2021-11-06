@@ -45,6 +45,7 @@ dependencies {
   api "org.start2do:utils:0.0.1-SNAPSHOT"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
   api "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
+  api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
 
 }
 def out_path = "${project.properties["out_path"]}$group"

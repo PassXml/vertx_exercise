@@ -6,11 +6,11 @@ import io.vertx.core.Handler
 import io.vertx.core.Vertx
 import io.vertx.core.WorkerExecutor
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.http.Cookie
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.jackson.DatabindCodec
-import io.vertx.core.logging.Log4j2LogDelegateFactory
 import io.vertx.ext.web.Route
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -22,7 +22,6 @@ import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
-import org.start2do.vertx.Global
 import org.start2do.vertx.Top
 import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.ext.createAsyncTask
@@ -44,6 +43,16 @@ object ControllerManager {
   private val logger = getLogger("WebLog")
   private val initSet = mutableSetOf<String>()
   private val urlSet = mutableSetOf<String>()
+  private val filters = mutableMapOf<String, FilterHandle>()
+  fun addFilter(filterHandle: FilterHandle) {
+    val name = filterHandle.getName()
+    if (filters[name] == null) {
+      filters[name] = filterHandle
+    } else {
+      Top.logger.error("过滤器Filter:${name}重复")
+    }
+  }
+
   fun start(router: Router, vertx: Vertx, packages: String) {
     val set = Reflections(
       ConfigurationBuilder()
@@ -69,6 +78,9 @@ object ControllerManager {
         }
         urlSet.add(formatUrl)
         logger.info("处理URL为:{}", formatUrl)
+        if (controller.filterHandleName != "NULL") {
+          filters.get(controller.filterHandleName)?.run(route)
+        }
         if (controller.useRoute) {
           logger.info("useRoute")
           method.invoke(instance, route.pathRegex(formatUrl).handler {
@@ -102,7 +114,7 @@ object ControllerManager {
                 }
               }
               else -> {
-                logger.info("{},{},使用Router Handle", clazz.simpleName, method.name)
+                logger.info("{},{},使用Router Handle,自动注入RoutingContext", clazz.simpleName, method.name)
                 val function = Handler<RoutingContext> { rc ->
                   createAsyncTask {
                     var params = arrayOf<Any>()
@@ -111,17 +123,11 @@ object ControllerManager {
                         RoutingContext::class.java.isAssignableFrom(parameter.type) -> {
                           params = params.plusElement(rc)
                         }
-                        HttpServerRequest::class.java.isAssignableFrom(parameter.type) -> {
-                          params = params.plusElement(rc.request())
-                        }
-                        HttpServerResponse::class.java.isAssignableFrom(parameter.type) -> {
-                          params = params.plusElement(rc.response())
-                        }
                       }
                     }
                     val result = method.callMethod(instance, *params)
                     if (!rc.response().closed()) {
-                      (result ?: "").outJson(rc)
+                      outRespone(controller.responeContentType, rc, result)
                     }
                   }
                 }
@@ -134,6 +140,20 @@ object ControllerManager {
             }
           }
         }
+      }
+    }
+  }
+
+  private inline fun outRespone(mimeType: MIMEType, rc: RoutingContext, result: Any?) {
+    when (mimeType) {
+      MIMEType.JSON -> (result ?: "{}").outJson(rc)
+      MIMEType.Text -> rc.response().putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.Text.value)
+        .end((result ?: "").toString())
+      MIMEType.HTML -> rc.response().putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.HTML.value)
+        .end((result ?: "").toString())
+      else -> {
+        logger.error("未实现")
+        rc.end()
       }
     }
   }
@@ -170,9 +190,17 @@ object ControllerManager {
 
   private inline fun setCountInfo(rc: RoutingContext) {
     rc.put(WehClientInfo.time, System.currentTimeMillis())
-    val requestId = UUID.randomUUID().toString().replace("-", "")
+
+    val cookie = rc.request().getCookie(WehClientInfo.requestId)
+    val requestId = cookie?.value ?: UUID.randomUUID().toString().replace("-", "")
     rc.put(WehClientInfo.requestId, requestId)
     rc.response().putHeader(WehClientInfo.requestId, requestId)
+    if (cookie == null) {
+      rc.response().addCookie(
+        Cookie.cookie(WehClientInfo.requestId, requestId).setDomain(rc.request().host()).setPath("/")
+          .setMaxAge(Long.MAX_VALUE)
+      )
+    }
     rc.response().endHandler {
       logger.info(
         "RequestID:{},请求:{},耗时:{}ms",
@@ -249,6 +277,9 @@ annotation class Controller(
   val blocking: Boolean = false,
   val useRoute: Boolean = false,
   val useWebSocket: Boolean = false,
+  val filterHandleName: String = "NULL",
+  val requestContentType: MIMEType = MIMEType.JSON,
+  val responeContentType: MIMEType = MIMEType.JSON
 )
 
 enum class HttpMethod {
@@ -264,7 +295,7 @@ abstract class BaseController(protected val router: Router, protected val vertx:
 }
 
 fun Any.outJson(rc: RoutingContext, error: HttpResponseStatus? = null, msg: String? = null, code: Int = 0) {
-  val response = rc.response().putHeader("Content-type", "application/json; charset=UTF-8")
+  val response = rc.response().putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.JSON.value)
   if (msg == null) {
     var result: Any? = null
     if (!BaseController::class.java.isAssignableFrom(this.javaClass) && !this.javaClass.name.startsWith("kotlinx.coroutines")) {
@@ -285,7 +316,7 @@ fun Any.outJson(rc: RoutingContext, error: HttpResponseStatus? = null, msg: Stri
 fun ByteArrayOutputStream.end(rc: RoutingContext, name: String) {
   this.use {
     rc.response()
-      .putHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+      .putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.Stream.value)
       .putHeader(
         HttpHeaders.CONTENT_DISPOSITION,
         "attachment; filename* = UTF-8''" + URLEncoder.encode(name, "UTF-8")
@@ -299,3 +330,18 @@ data class WebServiceHandles(
   val validationHandler: ValidationHandler,
   val serviceHandler: RouteToEBServiceHandler
 )
+
+abstract class FilterHandle(val router: Router) {
+  abstract fun getName(): String
+  abstract fun handle(rc: RoutingContext)
+  fun run(route: Route) {
+    route.handler { rc ->
+      handle(rc)
+    }
+  }
+}
+
+enum class MIMEType(val value: String) {
+  JSON("application/json; charset=UTF-8"), Stream("application/octet-stream"), Text("text/plain"), HTML("text/html");
+
+}

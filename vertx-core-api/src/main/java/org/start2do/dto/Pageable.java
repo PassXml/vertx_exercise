@@ -4,10 +4,13 @@ package org.start2do.dto;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /** @author HelloBox@outlook.com */
 @DataObject
-@Data
+@Setter
+@Getter
 public class Pageable {
   private Integer cur = 1;
   private Integer size = 10;
@@ -39,35 +42,4 @@ public class Pageable {
     keyword = (String) json.getValue("keyword");
   }
 
-  public Integer getCur() {
-    return cur;
-  }
-
-  public void setCur(Integer cur) {
-    this.cur = cur;
-  }
-
-  public Integer getSize() {
-    return size;
-  }
-
-  public void setSize(Integer size) {
-    this.size = size;
-  }
-
-  public Integer getStart() {
-    return start;
-  }
-
-  public void setStart(Integer start) {
-    this.start = start;
-  }
-
-  public String getKeyword() {
-    return keyword;
-  }
-
-  public void setKeyword(String keyword) {
-    this.keyword = keyword;
-  }
 }

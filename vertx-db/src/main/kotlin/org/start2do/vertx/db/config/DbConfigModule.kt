@@ -20,8 +20,10 @@ import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.db.*
 import org.start2do.vertx.db.factory.SQLDialectTransform
 import org.start2do.vertx.db.factory.SqlInstanceFactory
+import org.start2do.vertx.db.interfaces.SqlInstance
 import org.start2do.vertx.pojo.GuiceConfiguration
 import org.start2do.vertx.sys.BaseService
+import java.util.*
 
 /**
  * @Author Lijie
@@ -41,14 +43,14 @@ class DbConfigModule(private val jsonObject: JsonObject, private val vertx: Vert
     val password = config.password
     val database = config.database
     val dbType = config.type
-    val jdbcUrl = "jdbc:${dbType.toLowerCase()}://$host:$port/$database"
+    val jdbcUrl = "jdbc:${dbType.lowercase(Locale.getDefault())}://$host:$port/$database"
     logger.info("JDBC URL:{}", jdbcUrl)
     flyway(jdbcUrl, username, password, config.getFlyWaySetting())
     val dbTypeEnum = SQLDialectTransform.get(dbType)
     val configuration = DefaultConfiguration().set(dbTypeEnum)
     bind(Configuration::class.java).toInstance(configuration)
     bind(Vertx::class.java).toInstance(vertx)
-    val postgresSqlInstance = SqlInstanceFactory.get(dbTypeEnum)
+    val postgresSqlInstance = SqlInstanceFactory.get(dbTypeEnum) as SqlInstance
     val sqlConnectOptions = postgresSqlInstance.getSqlConnectOptions(host, port, username, password, database)
     val sqlClient = postgresSqlInstance.getSqlClient(vertx, sqlConnectOptions, PoolOptions())
     bind(SqlConnectOptions::class.java).toInstance(sqlConnectOptions)

@@ -2,6 +2,7 @@ plugins {
   id 'java'
   id 'maven-publish'
   id 'java-library'
+  id 'application'
 }
 
 group 'org.start2do'
@@ -18,10 +19,9 @@ dependencies {
   compileOnly(project(":vertx-core-api"))
   compileOnly(project(":vertx-core"))
   api "org.flywaydb:flyway-core:6.5.2"
-  api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
-  compileOnly "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
+  api "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
   compileOnly("io.vertx:vertx-pg-client:$vertxVersion")
-  implementation group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
+  compileOnly group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
 }
 
 test {
@@ -37,4 +37,8 @@ publishing {
       from components.java
     }
   }
+}
+
+application {
+  mainClassName "org.start2do.vertx.db.GenerateUtil"
 }
