@@ -2,6 +2,7 @@
 package org.start2do.vertx.db.factory
 
 import org.jooq.SQLDialect
+import java.util.*
 
 /**
  * @Author Lijie
@@ -9,7 +10,7 @@ import org.jooq.SQLDialect
  */
 object SQLDialectTransform {
   fun get(name: String): SQLDialect {
-    return when (name.toLowerCase()) {
+    return when (name.lowercase(Locale.getDefault())) {
       "postgresql" -> {
         SQLDialect.POSTGRES
       }

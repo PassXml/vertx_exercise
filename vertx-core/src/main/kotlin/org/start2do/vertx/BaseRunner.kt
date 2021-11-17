@@ -10,7 +10,7 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.cancel
 import org.start2do.vertx.config.VertxOptionBuilder
 import org.start2do.vertx.ext.getLogger
-import org.start2do.vertx.utils.ConfigFileReadUtils
+import org.start2do.vertx.utils.ConfigFileReadUtil
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 
@@ -47,7 +47,7 @@ interface BaseRunner : VertxLifecycleHooks {
       options,
       JsonObject(
         Buffer.buffer(
-          ConfigFileReadUtils.read("config.json").readAllBytes()
+          ConfigFileReadUtil.read("config.json").readAllBytes()
         )
       )
     )

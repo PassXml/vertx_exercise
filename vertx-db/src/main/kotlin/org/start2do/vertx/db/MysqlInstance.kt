@@ -2,8 +2,8 @@
 package org.start2do.vertx.db
 
 import io.vertx.core.Vertx
-import io.vertx.pgclient.PgConnectOptions
-import io.vertx.pgclient.PgPool
+import io.vertx.mysqlclient.MySQLConnectOptions
+import io.vertx.mysqlclient.MySQLPool
 import io.vertx.sqlclient.PoolOptions
 import io.vertx.sqlclient.SqlClient
 import io.vertx.sqlclient.SqlConnectOptions
@@ -14,9 +14,9 @@ import org.start2do.vertx.db.interfaces.SqlInstance
  * @Author Lijie
  * @date 2021/5/16:11:07
  */
-class PostgresSqlInstance : SqlInstance {
+class MysqlInstance : SqlInstance {
   override fun getType(): SQLDialect {
-    return SQLDialect.POSTGRES
+    return SQLDialect.MYSQL
   }
 
   override fun getSqlConnectOptions(
@@ -25,7 +25,7 @@ class PostgresSqlInstance : SqlInstance {
     username: String,
     password: String,
     database: String
-  ): SqlConnectOptions = PgConnectOptions()
+  ): SqlConnectOptions = MySQLConnectOptions()
     .setHost(host)
     .setPort(port)
     .setUser(username)
@@ -33,5 +33,5 @@ class PostgresSqlInstance : SqlInstance {
     .setDatabase(database)
 
   override fun getSqlClient(vertx: Vertx, options: SqlConnectOptions, poolOptions: PoolOptions): SqlClient =
-    PgPool.pool(vertx, options as PgConnectOptions, poolOptions)
+    MySQLPool.pool(vertx, options as MySQLConnectOptions, poolOptions)
 }

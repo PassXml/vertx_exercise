@@ -19,7 +19,7 @@ import org.apache.ignite.spi.encryption.keystore.KeystoreEncryptionSpi
 import org.start2do.vertx.*
 import org.start2do.vertx.Top.TopClusterManager
 import org.start2do.vertx.sys.MySSLFactory
-import org.start2do.vertx.utils.ConfigFileReadUtils
+import org.start2do.vertx.utils.ConfigFileReadUtil
 import org.start2do.vertx.utils.JacksonFix
 
 object VertxOptionBuilder {
@@ -140,7 +140,7 @@ object VertxOptionBuilder {
           PfxOptions()
             .setValue(
               Buffer.buffer(
-                ConfigFileReadUtils.read(busClientCertPath).readAllBytes()
+                ConfigFileReadUtil.read(busClientCertPath).readAllBytes()
               )
             )
             .setPassword(sslConfig.certPassword)
@@ -148,7 +148,7 @@ object VertxOptionBuilder {
         .setPemTrustOptions(
           PemTrustOptions().addCertValue(
             Buffer.buffer(
-              ConfigFileReadUtils.read(sslConfig.caPath).readAllBytes()
+              ConfigFileReadUtil.read(sslConfig.caPath).readAllBytes()
             )
           )
         )

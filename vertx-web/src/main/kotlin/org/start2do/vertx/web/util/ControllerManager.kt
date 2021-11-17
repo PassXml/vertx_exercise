@@ -1,5 +1,5 @@
 /*  大道至简 (C)2020 */
-package org.start2do.vertx.web.utils
+package org.start2do.vertx.web.util
 
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.Handler
@@ -8,8 +8,6 @@ import io.vertx.core.WorkerExecutor
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.Cookie
 import io.vertx.core.http.HttpHeaders
-import io.vertx.core.http.HttpServerRequest
-import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.jackson.DatabindCodec
 import io.vertx.ext.web.Route
 import io.vertx.ext.web.Router
@@ -23,10 +21,10 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.Top
-import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.ext.createAsyncTask
 import org.start2do.vertx.ext.getLogger
-import org.start2do.vertx.inject.InjectUtils
+import org.start2do.vertx.inject.InjectUtil
+import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.web.WehClientInfo
 import java.io.ByteArrayOutputStream
 import java.lang.reflect.Method
@@ -64,26 +62,28 @@ object ControllerManager {
         return@forEach
       }
       initSet.add(clazz.name)
-      val instance = InjectUtils.get(clazz) ?: clazz.getDeclaredConstructor(Router::class.java, Vertx::class.java)
+      val instance = InjectUtil.get(clazz) ?: clazz.getDeclaredConstructor(Router::class.java, Vertx::class.java)
         .newInstance(router, vertx)
       instance.build()
       instance.longTimeExecutor = Top.LongTimeExecutor
       var baseMountPath = clazz.getAnnotation(Controller::class.java)?.mountPath ?: ""
       for (method in clazz.methods) {
         val controller = method.getAnnotation(Controller::class.java) ?: continue
-        var route = createRouteMethod(controller, router)
+        var route = createRouteMethod(controller.method, router)
         val formatUrl = formatUrl(baseMountPath, controller.mountPath)
         if (urlSet.contains(formatUrl)) {
           continue
         }
         urlSet.add(formatUrl)
-        logger.info("处理URL为:{}", formatUrl)
+        logger.info("处理URL为:{},http method:{}", formatUrl, route.methods())
+        //前置过滤器
         if (controller.filterHandleName != "NULL") {
           filters.get(controller.filterHandleName)?.run(route)
         }
         if (controller.useRoute) {
           logger.info("useRoute")
           method.invoke(instance, route.pathRegex(formatUrl).handler {
+            controller.method
             setCountInfo(it)
           })
         } else if (controller.useWebSocket) {
@@ -101,50 +101,72 @@ object ControllerManager {
           createAsyncTask {
             when (true) {
               Handler::class.java.isAssignableFrom(method.returnType), WebServiceHandles::class.java == method.returnType -> {
-                val result = method.callMethod(instance, rootHandler)
-                if (method.returnType == WebServiceHandles::class.java) {
-                  val (validationHandler, serviceHandler) = result as WebServiceHandles
-                  eventBusService(
-                    clazz, method, rootHandler, controller.blocking, validationHandler, serviceHandler
-                  )
-                } else {
-                  eventBusService(
-                    clazz, method, rootHandler, controller.blocking, result as Handler<RoutingContext>
-                  )
-                }
+                useEventHandle(rootHandler, controller, method, clazz, instance)
               }
               else -> {
-                logger.info("{},{},使用Router Handle,自动注入RoutingContext", clazz.simpleName, method.name)
-                val function = Handler<RoutingContext> { rc ->
-                  createAsyncTask {
-                    var params = arrayOf<Any>()
-                    for (parameter in method.parameters) {
-                      when (true) {
-                        RoutingContext::class.java.isAssignableFrom(parameter.type) -> {
-                          params = params.plusElement(rc)
-                        }
-                      }
-                    }
-                    val result = method.callMethod(instance, *params)
-                    if (!rc.response().closed()) {
-                      outRespone(controller.responeContentType, rc, result)
-                    }
-                  }
-                }
-                if (controller.blocking) {
-                  rootHandler.blockingHandler(function)
-                } else {
-                  rootHandler.handler(function)
-                }
+                useRouteHandle(rootHandler, controller, method, clazz, instance)
               }
             }
           }
         }
       }
+
     }
   }
 
-  private inline fun outRespone(mimeType: MIMEType, rc: RoutingContext, result: Any?) {
+  private suspend fun <T : BaseController> useEventHandle(
+    rootHandler: Route,
+    controller: Controller,
+    method: Method,
+    clazz: Class<T>,
+    instance: BaseController
+  ) {
+    val result = method.callMethod(instance, rootHandler)
+    if (method.returnType == WebServiceHandles::class.java) {
+      val (validationHandler, serviceHandler) = result as WebServiceHandles
+      eventBusService(
+        clazz, method, rootHandler, controller.blocking, validationHandler, serviceHandler
+      )
+    } else {
+      eventBusService(
+        clazz, method, rootHandler, controller.blocking, result!! as Handler<RoutingContext>
+      )
+    }
+  }
+
+  private fun <T : BaseController> useRouteHandle(
+    rootHandler: Route,
+    controller: Controller,
+    method: Method,
+    clazz: Class<T>,
+    instance: BaseController
+  ) {
+    logger.info("{},{},使用Router Handle,自动注入RoutingContext", clazz.simpleName, method.name)
+    val function = Handler<RoutingContext> { rc ->
+      createAsyncTask {
+        var params = arrayOf<Any>()
+        for (parameter in method.parameters) {
+          when (true) {
+            RoutingContext::class.java.isAssignableFrom(parameter.type) -> {
+              params = params.plusElement(rc)
+            }
+          }
+        }
+        val result = method.callMethod(instance, *params)
+        if (rc.response().bytesWritten() == 0L && !rc.response().headWritten()) {
+          outRespone(controller.responeContentType, rc, result)
+        }
+      }
+    }
+    if (controller.blocking) {
+      rootHandler.blockingHandler(function)
+    } else {
+      rootHandler.handler(function)
+    }
+  }
+
+
+  private fun outRespone(mimeType: MIMEType, rc: RoutingContext, result: Any?) {
     when (mimeType) {
       MIMEType.JSON -> (result ?: "{}").outJson(rc)
       MIMEType.Text -> rc.response().putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.Text.value)
@@ -158,37 +180,46 @@ object ControllerManager {
     }
   }
 
-  private fun createRouteMethod(controller: Controller, router: Router): Route {
-    return when (controller.method) {
-      HttpMethod.HEAD -> {
-        router.head()
+  private fun createRouteMethod(methods: Array<HttpMethod>, router: Router): Route {
+    var result = router.route();
+    for (httpMethod in methods) {
+      val vertxHttpMethod = when (httpMethod) {
+        HttpMethod.HEAD -> {
+          io.vertx.core.http.HttpMethod.HEAD
+        }
+        HttpMethod.PUT -> {
+          io.vertx.core.http.HttpMethod.PUT
+        }
+        HttpMethod.POST -> {
+          io.vertx.core.http.HttpMethod.POST
+        }
+        HttpMethod.PATCH -> {
+          io.vertx.core.http.HttpMethod.PATCH
+        }
+        HttpMethod.TRACE -> {
+          io.vertx.core.http.HttpMethod.TRACE
+        }
+        HttpMethod.DELETE -> {
+          io.vertx.core.http.HttpMethod.DELETE
+        }
+        HttpMethod.OPTIONS -> {
+          io.vertx.core.http.HttpMethod.OPTIONS
+        }
+        else -> {
+          io.vertx.core.http.HttpMethod.GET
+        }
       }
-      HttpMethod.PUT -> {
-        router.put()
-      }
-      HttpMethod.POST -> {
-        router.post()
-      }
-      HttpMethod.PATCH -> {
-        router.patch()
-      }
-      HttpMethod.TRACE -> {
-        router.trace()
-      }
-      HttpMethod.DELETE -> {
-        router.delete()
-      }
-      HttpMethod.OPTIONS -> {
-        router.options()
-      }
-      else -> {
-        router.get()
+      if (result.methods() == null) {
+        result.method(vertxHttpMethod)
+      } else {
+        result.methods().add(vertxHttpMethod)
       }
     }
+    return result
   }
 
 
-  private inline fun setCountInfo(rc: RoutingContext) {
+  private fun setCountInfo(rc: RoutingContext) {
     rc.put(WehClientInfo.time, System.currentTimeMillis())
 
     val cookie = rc.request().getCookie(WehClientInfo.requestId)
@@ -273,7 +304,7 @@ suspend inline fun Method.callMethod(instance: BaseController, vararg params: An
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 annotation class Controller(
   val mountPath: String,
-  val method: HttpMethod = HttpMethod.GET,
+  val method: Array<HttpMethod> = arrayOf(HttpMethod.GET),
   val blocking: Boolean = false,
   val useRoute: Boolean = false,
   val useWebSocket: Boolean = false,
@@ -288,6 +319,7 @@ enum class HttpMethod {
 
 abstract class BaseController(protected val router: Router, protected val vertx: Vertx) {
   lateinit var longTimeExecutor: WorkerExecutor
+  val log = getLogger(this.javaClass)
 
   open fun build(): BaseController {
     return this
@@ -341,7 +373,6 @@ abstract class FilterHandle(val router: Router) {
   }
 }
 
-enum class MIMEType(val value: String) {
+public enum class MIMEType(val value: String) {
   JSON("application/json; charset=UTF-8"), Stream("application/octet-stream"), Text("text/plain"), HTML("text/html");
-
 }

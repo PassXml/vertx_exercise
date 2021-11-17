@@ -9,7 +9,7 @@ import com.google.inject.Injector
  * @Author passxml
  * @date 2020/7/21:09:04
  */
-class InjectUtils {
+class InjectUtil {
   constructor(array: List<AbstractModule>) {
     instance = Guice.createInjector(array)
   }

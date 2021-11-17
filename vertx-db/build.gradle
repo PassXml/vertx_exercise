@@ -21,6 +21,7 @@ dependencies {
   api "org.flywaydb:flyway-core:6.5.2"
   api "io.github.jklingsporn:vertx-jooq-generate:$JooqVertxVersion"
   compileOnly("io.vertx:vertx-pg-client:$vertxVersion")
+  compileOnly("io.vertx:vertx-mysql-client:$vertxVersion")
   compileOnly group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
 }
 

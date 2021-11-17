@@ -7,18 +7,13 @@ import io.vertx.core.Context
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.util.ClasspathHelper
-import org.reflections.util.ConfigurationBuilder
+import org.start2do.utils.classutil.ClassUtil
 import org.start2do.vertx.pojo.GuiceConfiguration
-import org.start2do.utils.classutils.ClassUtils
 import org.start2do.vertx.*
 import org.start2do.vertx.pojo.AutoConfiguration
 import org.start2do.vertx.pojo.ServiceVerticle
 import org.start2do.vertx.ext.getLogger
-import org.start2do.vertx.inject.InjectUtils
-import java.net.URL
+import org.start2do.vertx.inject.InjectUtil
 
 /**
  * @Author passxml
@@ -31,21 +26,11 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
   open fun startAfter() {}
   open fun injectConfig(packages: JsonArray): MutableList<AbstractModule> {
     val result = mutableListOf<AbstractModule>()
-    val packageSet = mutableSetOf<URL>()
     packages.forEach {
-      packageSet.addAll(
-        ClasspathHelper.forPackage(it.toString())
-      )
-    }
-    if (packageSet.isNotEmpty()) {
-      Reflections(
-        ConfigurationBuilder().setScanners(SubTypesScanner()).addUrls(
-          packageSet
-        )
-      ).getSubTypesOf(AbstractModule::class.java).forEach {
-        val annotation = it.getAnnotation(GuiceConfiguration::class.java)
+      ClassUtil.getPackageClassBySubClass(it.toString(), AbstractModule::class.java).forEach { clazz ->
+        val annotation = clazz.getAnnotation(GuiceConfiguration::class.java)
         if (annotation != null) {
-          it.getDeclaredConstructor(JsonObject::class.java, Vertx::class.java)?.let { constructor ->
+          clazz.getDeclaredConstructor(JsonObject::class.java, Vertx::class.java)?.let { constructor ->
             result.add(constructor.newInstance(config(), vertx))
           }
         }
@@ -67,7 +52,7 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
     for (s in getAutoConfiguration()) {
       packages.add(s)
     }
-    InjectUtils(injectConfig(packages))
+    InjectUtil(injectConfig(packages))
     authInitBefore()
     this.javaClass.getAnnotation(ServiceVerticle::class.java)?.let {
       ServiceManager.init(vertx)
@@ -84,7 +69,7 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
 
   private fun getAutoConfiguration(): Array<String> {
     var result = arrayOf<String>()
-    ClassUtils.getPackageClassBySubClass("org.start2do", AutoConfiguration::class.java).forEach {
+    ClassUtil.getPackageClassBySubClass("org.start2do", AutoConfiguration::class.java).forEach {
       result = result.plus(it.getDeclaredConstructor().newInstance().getScanPackages())
     }
     return result

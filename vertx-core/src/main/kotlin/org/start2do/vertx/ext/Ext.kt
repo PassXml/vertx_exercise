@@ -34,19 +34,6 @@ fun List<Any>.toJsonArray(): JsonArray {
   return JsonArray(this)
 }
 
-inline fun <reified T> T.clone(): T {
-  val to = T::class.java.getDeclaredConstructor().newInstance()
-  T::class.java.declaredFields.forEach { field ->
-    val isLocked = field.trySetAccessible()
-    field.isAccessible = true
-    if (field.get(this) != null) {
-      field.set(to, field.get(this))
-    }
-    field.isAccessible = isLocked
-  }
-  return to
-}
-
 fun <T> CCoroutineExceptionHandler(ctx: Message<T>): CoroutineExceptionHandler {
   return CoroutineExceptionHandler { _, e ->
     logger.error("CCoroutineExceptionHandler(Message)")

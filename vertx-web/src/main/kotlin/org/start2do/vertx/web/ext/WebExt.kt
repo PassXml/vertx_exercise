@@ -17,7 +17,7 @@ import org.start2do.vertx.pojo.BusinessException
 import org.start2do.vertx.pojo.ResultMessageDto
 import org.start2do.vertx.ext.toJsonObject
 import org.start2do.vertx.web.WebTop
-import org.start2do.vertx.web.utils.outJson
+import org.start2do.vertx.web.util.outJson
 import java.math.BigDecimal
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -66,11 +66,11 @@ inline fun <reified T> RoutingContext.build(): T {
   }
 }
 
-inline fun RoutingContext.getLoginInfo(): Future<User> {
+fun RoutingContext.getLoginInfo(): Future<User> {
   return this.request().getLoginInfo()
 }
 
-inline fun HttpServerRequest.getLoginInfo(): Future<User> {
+fun HttpServerRequest.getLoginInfo(): Future<User> {
   var token = this.headers()[HttpHeaders.AUTHORIZATION]
   if (token.isEmpty()) {
     throw BusinessException(401, "没有权限")

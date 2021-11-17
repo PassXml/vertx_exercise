@@ -17,7 +17,7 @@ import io.vertx.kotlin.coroutines.await
 import io.vertx.kotlin.coroutines.dispatcher
 import org.start2do.vertx.ext.createFuture
 import org.start2do.vertx.ext.getLogger
-import org.start2do.vertx.utils.ConfigFileReadUtils
+import org.start2do.vertx.utils.ConfigFileReadUtil
 import java.io.FileNotFoundException
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +30,7 @@ object VertxRunner {
   private suspend fun config(vertx: Vertx): ConfigRetriever {
     val retrieverOptions = ConfigRetrieverOptions()
     try {
-      val inputStream = ConfigFileReadUtils.read("config.json")
+      val inputStream = ConfigFileReadUtil.read("config.json")
       retrieverOptions.addStore(
         ConfigStoreOptions().setType("json").setConfig(JsonObject(Buffer.buffer(inputStream.readBytes())))
       )
@@ -47,7 +47,6 @@ object VertxRunner {
           ConfigStoreOptions().setType("json")
         )
     )
-
     return retriever
   }
 

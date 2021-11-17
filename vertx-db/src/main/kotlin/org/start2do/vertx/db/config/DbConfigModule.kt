@@ -43,6 +43,7 @@ class DbConfigModule(private val jsonObject: JsonObject, private val vertx: Vert
     val password = config.password
     val database = config.database
     val dbType = config.type
+//    重构
     val jdbcUrl = "jdbc:${dbType.lowercase(Locale.getDefault())}://$host:$port/$database"
     logger.info("JDBC URL:{}", jdbcUrl)
     flyway(jdbcUrl, username, password, config.getFlyWaySetting())

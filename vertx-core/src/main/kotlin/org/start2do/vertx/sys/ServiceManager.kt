@@ -13,7 +13,7 @@ import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.Global
-import org.start2do.vertx.inject.InjectUtils
+import org.start2do.vertx.inject.InjectUtil
 
 object ServiceManager {
   private val logger = Log4j2LogDelegateFactory().createDelegate(Global.SYS)
@@ -62,7 +62,7 @@ object ServiceManager {
         for (clazz1 in annotationSet) {
           face.getAnnotation(clazz1) ?: continue
           val serviceName = face.simpleName
-          val registerInfo = InjectUtils.get(clazz).register(serviceBinder.setAddress("$address.$serviceName"))
+          val registerInfo = InjectUtil.get(clazz).register(serviceBinder.setAddress("$address.$serviceName"))
           logger.info("推送服务{},{}", serviceName, registerInfo.isRegistered)
           serviceSet.add(
             ServiceDto(

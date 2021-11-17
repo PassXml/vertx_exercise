@@ -6,7 +6,7 @@ object QueryUtil {
   fun create() = mutableListOf<Condition>()
   fun add(where: MutableList<Condition>, notEmpty: Boolean?, eq: Condition) {
     if (notEmpty == null) {
-      return;
+      return
     }
     where.add(eq)
   }

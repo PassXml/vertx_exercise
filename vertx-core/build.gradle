@@ -25,7 +25,6 @@ dependencies {
   api "io.vertx:vertx-config:$vertxVersion"
   api "org.apache.logging.log4j:log4j-api:$log4jVersion"
   api "org.apache.logging.log4j:log4j-core:$log4jVersion"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
   api "io.vertx:vertx-core:$vertxVersion"
   api group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
   api "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
@@ -43,8 +42,6 @@ dependencies {
     exclude group: "log4j"
   }
   api "org.start2do:utils:0.0.1-SNAPSHOT"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
   api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
 
 }

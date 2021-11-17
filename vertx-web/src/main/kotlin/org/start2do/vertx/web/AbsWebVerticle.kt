@@ -1,7 +1,9 @@
 /*  大道至简 (C)2020 */
 package org.start2do.vertx.web
 
+import com.google.inject.AbstractModule
 import io.netty.handler.codec.http.HttpResponseStatus
+import io.vertx.core.Vertx
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
@@ -18,14 +20,13 @@ import io.vertx.kotlin.coroutines.await
 import io.vertx.serviceproxy.ServiceException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.start2do.vertx.pojo.Configuration
 import org.start2do.vertx.Top
 import org.start2do.vertx.ext.CCoroutineExceptionHandler
-import org.start2do.vertx.ext.getLogger
-import org.start2do.vertx.inject.InjectUtils
+import org.start2do.vertx.inject.InjectUtil
+import org.start2do.vertx.pojo.Configuration
 import org.start2do.vertx.sys.AbsBaseVerticle
-import org.start2do.vertx.web.utils.ControllerManager
-import org.start2do.vertx.web.utils.outJson
+import org.start2do.vertx.web.util.ControllerManager
+import org.start2do.vertx.web.util.outJson
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -149,6 +150,19 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
     )
   }
 
+  open override fun injectConfig(packages: JsonArray): MutableList<AbstractModule> {
+    val config = super.injectConfig(packages)
+    config.add(
+      object : AbstractModule() {
+        override fun configure() {
+          bind(Vertx::class.java).toInstance(getVertx())
+          bind(Router::class.java).toInstance(router)
+          super.configure()
+        }
+      })
+    return config
+  }
+
   final override fun start() {
     val httpSetting = config().getJsonObject(WebSetting.main, JsonObject())
     logger.info("[SYS]第一次初始化")
@@ -163,7 +177,7 @@ abstract class AbsWebVerticle : AbsBaseVerticle() {
     logger.info("[SYS]初始化路由")
     buildRouter()
     logger.info("[SYS]初始化Guice")
-    InjectUtils(injectConfig(packages))
+    InjectUtil(injectConfig(packages))
     authInitBefore()
     getAuth()?.let {
       WebTop.TopAuth = it
