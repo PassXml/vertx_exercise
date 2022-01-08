@@ -1,7 +1,6 @@
 /*  大道至简 (C)2021 */
 package org.start2do.vertx.utils
 
-import org.apache.log4j.lf5.util.ResourceUtils
 import org.start2do.utils.ResourceUtil
 import java.io.FileNotFoundException
 import java.io.InputStream

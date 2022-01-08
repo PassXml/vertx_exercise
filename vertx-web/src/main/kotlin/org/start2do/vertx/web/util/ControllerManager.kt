@@ -20,6 +20,7 @@ import org.reflections.Reflections
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
+import org.start2do.utils.classutil.ClassUtil
 import org.start2do.vertx.Top
 import org.start2do.vertx.ext.createAsyncTask
 import org.start2do.vertx.ext.getLogger
@@ -41,29 +42,14 @@ object ControllerManager {
   private val logger = getLogger("WebLog")
   private val initSet = mutableSetOf<String>()
   private val urlSet = mutableSetOf<String>()
-  private val filters = mutableMapOf<String, FilterHandle>()
-  fun addFilter(filterHandle: FilterHandle) {
-    val name = filterHandle.getName()
-    if (filters[name] == null) {
-      filters[name] = filterHandle
-    } else {
-      Top.logger.error("过滤器Filter:${name}重复")
-    }
-  }
 
   fun start(router: Router, vertx: Vertx, packages: String) {
-    val set = Reflections(
-      ConfigurationBuilder()
-        .setScanners(SubTypesScanner())
-        .setUrls(ClasspathHelper.forPackage(packages))
-    ).getSubTypesOf(BaseController::class.java)
-    set.forEach { clazz ->
+    ClassUtil.getPackageClassBySubClass(packages, BaseController::class.java).forEach { clazz ->
       if (initSet.contains(clazz.name)) {
         return@forEach
       }
       initSet.add(clazz.name)
-      val instance = InjectUtil.get(clazz) ?: clazz.getDeclaredConstructor(Router::class.java, Vertx::class.java)
-        .newInstance(router, vertx)
+      val instance = InjectUtil.get(clazz)
       instance.build()
       instance.longTimeExecutor = Top.LongTimeExecutor
       var baseMountPath = clazz.getAnnotation(Controller::class.java)?.mountPath ?: ""
@@ -76,10 +62,6 @@ object ControllerManager {
         }
         urlSet.add(formatUrl)
         logger.info("处理URL为:{},http method:{}", formatUrl, route.methods())
-        //前置过滤器
-        if (controller.filterHandleName != "NULL") {
-          filters.get(controller.filterHandleName)?.run(route)
-        }
         if (controller.useRoute) {
           logger.info("useRoute")
           method.invoke(instance, route.pathRegex(formatUrl).handler {
@@ -90,9 +72,7 @@ object ControllerManager {
           logger.info("useWebSocket")
           route.pathRegex(formatUrl).handler { rc ->
             rc.request().pause()
-            createAsyncTask {
-              method.callMethod(instance, rc.request().toWebSocket().await())
-            }
+            method.callMethod(instance, rc.request().toWebSocket())
           }
         } else {
           val rootHandler = route.pathRegex(formatUrl).handler(BodyHandler.create()).handler {
@@ -114,7 +94,7 @@ object ControllerManager {
     }
   }
 
-  private suspend fun <T : BaseController> useEventHandle(
+  private fun <T : BaseController> useEventHandle(
     rootHandler: Route,
     controller: Controller,
     method: Method,
@@ -143,7 +123,6 @@ object ControllerManager {
   ) {
     logger.info("{},{},使用Router Handle,自动注入RoutingContext", clazz.simpleName, method.name)
     val function = Handler<RoutingContext> { rc ->
-      createAsyncTask {
         var params = arrayOf<Any>()
         for (parameter in method.parameters) {
           when (true) {
@@ -152,11 +131,7 @@ object ControllerManager {
             }
           }
         }
-        val result = method.callMethod(instance, *params)
-        if (rc.response().bytesWritten() == 0L && !rc.response().headWritten()) {
-          outRespone(controller.responeContentType, rc, result)
-        }
-      }
+      outRespone(controller.responeContentType, rc, method.callMethod(instance, *params))
     }
     if (controller.blocking) {
       rootHandler.blockingHandler(function)
@@ -167,6 +142,9 @@ object ControllerManager {
 
 
   private fun outRespone(mimeType: MIMEType, rc: RoutingContext, result: Any?) {
+    if (rc.response().bytesWritten() != 0L && rc.response().headWritten()) {
+      return
+    }
     when (mimeType) {
       MIMEType.JSON -> (result ?: "{}").outJson(rc)
       MIMEType.Text -> rc.response().putHeader(HttpHeaders.CONTENT_TYPE, MIMEType.Text.value)
@@ -283,16 +261,20 @@ object ControllerManager {
   }
 }
 
-suspend inline fun Method.callMethod(instance: BaseController, vararg params: Any?): Any? {
+fun Method.callMethod(instance: BaseController, vararg params: Any?): Any? {
   return if (this.parameters.isEmpty()) {
     if (this.kotlinFunction != null && this.kotlinFunction!!.isSuspend) {
-      this.kotlinFunction!!.callSuspend(instance)
+      createAsyncTask {
+        this.kotlinFunction!!.callSuspend(instance)
+      }
     } else {
       this.invoke(instance)
     }
   } else {
     if (this.kotlinFunction != null && this.kotlinFunction!!.isSuspend) {
-      this.kotlinFunction!!.callSuspend(instance, *params)
+      createAsyncTask {
+        this.kotlinFunction!!.callSuspend(instance, *params)
+      }
     } else {
       this.invoke(instance, *params)
     }
@@ -308,7 +290,6 @@ annotation class Controller(
   val blocking: Boolean = false,
   val useRoute: Boolean = false,
   val useWebSocket: Boolean = false,
-  val filterHandleName: String = "NULL",
   val requestContentType: MIMEType = MIMEType.JSON,
   val responeContentType: MIMEType = MIMEType.JSON
 )

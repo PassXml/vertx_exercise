@@ -3,12 +3,12 @@ buildscript {
     postgresqlVertsion = "42.2.14"
     JooqVertxVersion = "6.3.0"
     vertxVersion = '4.2.1'
-    log4jVersion = "2.13.3"
+    log4jVersion = "2.15.0"
     db_url = "jdbc:postgresql://localhost:5432/demo"
     db_user = "postgres"
     db_password = "123"
     out_path = "/Volumes/RamDisk/Caches/demo"
-    javaVersion = '16'
+    javaVersion = '11'
     lombokVersion = '1.18.22'
   }
   repositories {
@@ -24,10 +24,10 @@ buildscript {
 
 plugins {
   id "com.diffplug.gradle.spotless" version "4.5.1" apply false
-  id "org.jetbrains.kotlin.jvm" version "1.5.31" apply false
+  id "org.jetbrains.kotlin.jvm" version "1.6.10" apply false
   id 'com.github.johnrengelman.shadow' version '6.1.0' apply(false)
   id "java"
-  id "org.jetbrains.kotlin.kapt" version "1.5.31" apply false
+  id "org.jetbrains.kotlin.kapt" version "1.6.10" apply false
   id "io.franzbecker.gradle-lombok" version "4.0.0" apply(false)
 }
 
@@ -46,6 +46,9 @@ allprojects {
   repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+      url "https://maven.start2do.xyz/repository/local/"
+    }
     maven {
       url "https://plugins.gradle.org/m2/"
     }

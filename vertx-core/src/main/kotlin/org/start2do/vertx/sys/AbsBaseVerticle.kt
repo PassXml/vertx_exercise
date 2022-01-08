@@ -7,13 +7,14 @@ import io.vertx.core.Context
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import org.reflections.Reflections
 import org.start2do.utils.classutil.ClassUtil
 import org.start2do.vertx.pojo.GuiceConfiguration
 import org.start2do.vertx.*
-import org.start2do.vertx.pojo.AutoConfiguration
 import org.start2do.vertx.pojo.ServiceVerticle
 import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.inject.InjectUtil
+import org.start2do.vertx.pojo.Configuration
 
 /**
  * @Author passxml
@@ -27,7 +28,11 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
   open fun injectConfig(packages: JsonArray): MutableList<AbstractModule> {
     val result = mutableListOf<AbstractModule>()
     packages.forEach {
-      ClassUtil.getPackageClassBySubClass(it.toString(), AbstractModule::class.java).forEach { clazz ->
+      val packagePath = it.toString()
+      if (packagePath.isNullOrEmpty()) {
+        return@forEach
+      }
+      ClassUtil.getPackageClassBySubClass(packagePath, AbstractModule::class.java).forEach { clazz ->
         val annotation = clazz.getAnnotation(GuiceConfiguration::class.java)
         if (annotation != null) {
           clazz.getDeclaredConstructor(JsonObject::class.java, Vertx::class.java)?.let { constructor ->
@@ -46,12 +51,21 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
     }
   }
 
+  open fun getPackages(): JsonArray {
+    val packages = JsonArray()
+    ClassUtil.getPackageClass("", Configuration::class.java).forEach {
+      val scanPackages = it.getAnnotation(Configuration::class.java).scanPackages
+      packages.add(it.packageName)
+      for (pkg in scanPackages) {
+        packages.add(pkg)
+      }
+    }
+    return packages
+  }
+
   override fun start() {
     firstInit()
-    val packages = JsonArray()
-    for (s in getAutoConfiguration()) {
-      packages.add(s)
-    }
+    val packages = getPackages()
     InjectUtil(injectConfig(packages))
     authInitBefore()
     this.javaClass.getAnnotation(ServiceVerticle::class.java)?.let {
@@ -65,14 +79,6 @@ abstract class AbsBaseVerticle : AbstractVerticle() {
     }
     super.start()
     startAfter()
-  }
-
-  private fun getAutoConfiguration(): Array<String> {
-    var result = arrayOf<String>()
-    ClassUtil.getPackageClassBySubClass("org.start2do", AutoConfiguration::class.java).forEach {
-      result = result.plus(it.getDeclaredConstructor().newInstance().getScanPackages())
-    }
-    return result
   }
 
   final override fun stop() {

@@ -11,7 +11,6 @@ repositories {
   mavenLocal()
   mavenCentral()
 }
-def igniteVersion = "2.9.1"
 
 dependencies {
   compileOnly "net.cinnom:nano-cuckoo:3.0.2"
@@ -29,18 +28,7 @@ dependencies {
   api group: 'io.vertx', name: 'vertx-lang-kotlin-coroutines', version: vertxVersion
   api "com.fasterxml.jackson.module:jackson-module-kotlin:2.10.2"
 //  api "io.vertx:vertx-service-discovery:$vertxVersion"
-  //集群
-  compileOnly group: 'org.apache.ignite', name: 'ignite-log4j2', version: '2.9.0'
-  compileOnly("org.apache.ignite:ignite-core:$igniteVersion")
-  compileOnly("org.apache.ignite:ignite-log4j:$igniteVersion")
-  compileOnly "org.apache.ignite:ignite-indexing:$igniteVersion"
-  compileOnly("io.vertx:vertx-ignite:$vertxVersion") {
-    exclude group: "org.apache.ignite"
-  }
-  compileOnly("io.vertx:vertx-zookeeper:$vertxVersion") {
-    exclude group: "org.slf4j"
-    exclude group: "log4j"
-  }
+
   api "org.start2do:utils:0.0.1-SNAPSHOT"
   api "io.github.jklingsporn:vertx-jooq-classic-reactive:$JooqVertxVersion"
 

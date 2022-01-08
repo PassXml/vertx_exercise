@@ -1,0 +1,38 @@
+plugins {
+  id 'java'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+}
+def igniteVersion = "2.11.0"
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+  //集群
+  compileOnly("org.apache.ignite:ignite-log4j2:$igniteVersion") {
+    exclude group: "org.apache.logging.log4j"
+  }
+  compileOnly("org.apache.ignite:ignite-core:$igniteVersion") {
+    exclude group: "org.apache.logging.log4j"
+  }
+  compileOnly("org.apache.ignite:ignite-indexing:$igniteVersion") {
+    exclude group: "org.apache.logging.log4j"
+  }
+  compileOnly("io.vertx:vertx-ignite:$vertxVersion") {
+    exclude group: "org.apache.ignite"
+  }
+  compileOnly("io.vertx:vertx-zookeeper:$vertxVersion") {
+    exclude group: "org.slf4j"
+    exclude group: "log4j"
+  }
+  compileOnly(project(":vertx-core"))
+}
+
+test {
+  useJUnitPlatform()
+}

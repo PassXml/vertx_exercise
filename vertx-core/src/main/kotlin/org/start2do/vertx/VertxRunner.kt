@@ -15,6 +15,8 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.spi.cluster.NodeListener
 import io.vertx.kotlin.coroutines.await
 import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.runBlocking
+import org.start2do.vertx.config.NetWorkSetting
 import org.start2do.vertx.ext.createFuture
 import org.start2do.vertx.ext.getLogger
 import org.start2do.vertx.utils.ConfigFileReadUtil
@@ -27,30 +29,52 @@ import java.util.concurrent.TimeUnit
  */
 object VertxRunner {
   private val LOGGER = getLogger(VertxRunner::javaClass.name)
-  private suspend fun config(vertx: Vertx): ConfigRetriever {
+  lateinit var vertx: Vertx
+
+
+  private fun config(vertx: Vertx): ConfigRetriever {
     val retrieverOptions = ConfigRetrieverOptions()
     try {
       val inputStream = ConfigFileReadUtil.read("config.json")
+      val jsonObject = JsonObject(
+        Buffer.buffer(inputStream.readAllBytes())
+      )
       retrieverOptions.addStore(
-        ConfigStoreOptions().setType("json").setConfig(JsonObject(Buffer.buffer(inputStream.readBytes())))
+        ConfigStoreOptions().setType("json").setConfig(
+          jsonObject
+        )
       )
     } catch (e: FileNotFoundException) {
       LOGGER.error("没有配置文件")
     }
-    val retriever: ConfigRetriever = ConfigRetriever.create(
-      vertx,
-      retrieverOptions
-        .addStore(
-          ConfigStoreOptions()
-            .setType("env")
-        ).addStore(
-          ConfigStoreOptions().setType("json")
-        )
+    return ConfigRetriever.create(
+      vertx, retrieverOptions.addStore(
+        ConfigStoreOptions().setType("env")
+      ).addStore(
+        ConfigStoreOptions().setType("json")
+      ).setScanPeriod(900)
     )
-    return retriever
   }
 
-  private fun initGlobal(vertx: Vertx) {
+  private suspend fun setNetworkConfig(verticleClazz: Class<out AbstractVerticle>, jsonObject: JsonObject): JsonObject {
+    NetWorkSetting.from(jsonObject)?.let { networkSetting ->
+      val clazz = Class.forName(networkSetting.className)
+      if (GetNetworkSetting::class.java.isAssignableFrom(clazz)) {
+        val instance = clazz.getDeclaredConstructor().newInstance() as GetNetworkSetting
+        if (networkSetting.flag.isNullOrBlank()) {
+          networkSetting.flag = verticleClazz.simpleName
+        }
+        return try {
+          instance.get(vertx, networkSetting).await().mergeIn(jsonObject)
+        } catch (e: Throwable) {
+          JsonObject()
+        }
+      }
+    }
+    return jsonObject
+  }
+
+  private fun initGlobal() {
     Top.LongTimeExecutor = vertx.createSharedWorkerExecutor("Long_Time_Block", 5, 10, TimeUnit.MINUTES)
     Top.Breaker = CircuitBreaker.create(
       "Main", vertx,
@@ -82,24 +106,18 @@ object VertxRunner {
 
   @JvmStatic
   fun runWithOption(option: VertxOptions?, vararg deployment: Deployment) {
-    val vertx = Vertx.vertx(
-      if (option == null) {
-        VertxOptions()
-          .setBlockedThreadCheckInterval(60)
-          .setBlockedThreadCheckIntervalUnit(TimeUnit.SECONDS)
-          .setFileSystemOptions(FileSystemOptions().setFileCachingEnabled(false))
-      } else {
-        option
-      }
+    vertx = Vertx.vertx(
+      option ?: VertxOptions().setBlockedThreadCheckInterval(60).setBlockedThreadCheckIntervalUnit(TimeUnit.SECONDS)
+        .setFileSystemOptions(FileSystemOptions().setFileCachingEnabled(false))
     )
-    initGlobal(vertx)
-    createFuture {
-      val configRetriever = config(vertx)
-      val config = configRetriever.config.await()
+    runBlocking {
+      val config = config(vertx).config.await()
+      initGlobal()
       for (deployment in deployment) {
         val deploymentOptions = if (deployment.option == null) {
           val options = DeploymentOptions()
-          options.config = if (options.config == null) config else options.config.mergeIn(config)
+          val jsonObject = if (options.config == null) config else options.config.mergeIn(config)
+          options.config = setNetworkConfig(deployment.clazz, jsonObject)
           options
         } else {
           deployment.option?.config?.mergeIn(config)

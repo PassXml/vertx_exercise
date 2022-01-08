@@ -4,5 +4,4 @@ package org.start2do.vertx.pojo
 annotation class Configuration(
   val scanPackages: Array<String> = [],
   val resourcesDir: String = "./"
-
 )

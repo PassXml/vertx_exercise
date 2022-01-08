@@ -1,0 +1,21 @@
+plugins {
+  id 'java'
+}
+
+group 'org.start2do'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+  compileOnly(project(":vertx-core"))
+  api("io.vertx:vertx-web-client:$vertxVersion")
+}
+
+test {
+  useJUnitPlatform()
+}

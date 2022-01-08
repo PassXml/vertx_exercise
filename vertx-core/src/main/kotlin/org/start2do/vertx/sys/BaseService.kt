@@ -28,8 +28,6 @@ abstract class BaseService<T : AbsService> : AbsService {
   }
 
   open fun register(serviceBinder: ServiceBinder): MessageConsumer<JsonObject> {
-    println(getAddress())
-    println(type as Class<T>)
     return serviceBinder.setAddress(getAddress()).register(type as Class<T>, this as T)
   }
 

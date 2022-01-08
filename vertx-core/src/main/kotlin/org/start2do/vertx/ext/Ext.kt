@@ -34,7 +34,7 @@ fun List<Any>.toJsonArray(): JsonArray {
   return JsonArray(this)
 }
 
-fun <T> CCoroutineExceptionHandler(ctx: Message<T>): CoroutineExceptionHandler {
+fun <T> ExceptionHandler(ctx: Message<T>): CoroutineExceptionHandler {
   return CoroutineExceptionHandler { _, e ->
     logger.error("CCoroutineExceptionHandler(Message)")
     logger.error(e.message, e)
@@ -49,7 +49,7 @@ fun <T> CCoroutineExceptionHandler(ctx: Message<T>): CoroutineExceptionHandler {
   }
 }
 
-fun <T> CCoroutineExceptionHandler(ctx: Handler<AsyncResult<T>>): CoroutineExceptionHandler {
+fun <T> ExceptionHandler(ctx: Handler<AsyncResult<T>>): CoroutineExceptionHandler {
   return CoroutineExceptionHandler { _, e ->
     logger.error("CCoroutineExceptionHandler(AsyncResult)")
     logger.error(e.message, e)
@@ -61,7 +61,7 @@ fun <T> CCoroutineExceptionHandler(ctx: Handler<AsyncResult<T>>): CoroutineExcep
   }
 }
 
-fun CCoroutineExceptionHandler(): CoroutineContext {
+fun ExceptionHandler(): CoroutineContext {
   return CoroutineExceptionHandler { _, e ->
     logger.error("CCoroutineExceptionHandler(null)")
     logger.error(e.message, e)
@@ -69,7 +69,7 @@ fun CCoroutineExceptionHandler(): CoroutineContext {
 }
 
 inline fun <T> createResultHandle(handle: Handler<AsyncResult<T>>, crossinline block: suspend (CoroutineScope) -> T) {
-  CoroutineScope(Top.coroutineDispatcher).launch(CCoroutineExceptionHandler(handle)) {
+  CoroutineScope(Top.coroutineDispatcher).launch(ExceptionHandler(handle)) {
     handle.handle(Future.succeededFuture(block(this)))
   }
 }
@@ -88,18 +88,22 @@ inline fun <T, R : AbsService> R.blockingHandler(crossinline block: suspend (R) 
   }
 }
 
-inline fun <T> createFuture(
-  crossinline block: suspend (CoroutineScope) -> T
+fun <T> createFuture(
+  handler: CoroutineExceptionHandler? = null,
+  block: suspend (CoroutineScope) -> T
 ): Future<T> = Future.future { promise ->
-  CoroutineScope(Top.coroutineDispatcher).launch(CCoroutineExceptionHandler(promise)) {
+  CoroutineScope(Top.coroutineDispatcher).launch(handler ?: ExceptionHandler(promise)) {
     promise.complete(block(this))
+
   }
 }
 
-inline fun createAsyncTask(
-  crossinline block: suspend (CoroutineScope) -> Unit
+
+fun createAsyncTask(
+  handler: CoroutineExceptionHandler? = null,
+  block: suspend (CoroutineScope) -> Unit
 ) {
-  CoroutineScope(Top.coroutineDispatcher).launch(Top.CCoroutineExceptionHandler) {
+  CoroutineScope(Top.coroutineDispatcher).launch(handler ?: Top.CCoroutineExceptionHandler) {
     block(this)
   }
 }

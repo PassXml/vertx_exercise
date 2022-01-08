@@ -9,7 +9,7 @@ import io.vertx.core.logging.Log4j2LogDelegateFactory
 import io.vertx.serviceproxy.ServiceBinder
 import io.vertx.serviceproxy.ServiceProxyBuilder
 import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
+import org.reflections.scanners.Scanners
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
 import org.start2do.vertx.Global
@@ -51,7 +51,7 @@ object ServiceManager {
 
   fun publish(address: String = (System.getProperty(Global.SERVICE_ADDRESS)), scanPackage: String) {
     val set = Reflections(
-      ConfigurationBuilder().setScanners(SubTypesScanner())
+      ConfigurationBuilder().setScanners(Scanners.SubTypes)
         .setUrls(ClasspathHelper.forPackage(scanPackage))
     ).getSubTypesOf(BaseService::class.java)
     for (clazz in set) {

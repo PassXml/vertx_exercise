@@ -61,10 +61,6 @@ class EventBusSetting(jsonObject: JsonObject) {
   }
 
   fun getSSLConfig(): SSL = SSL(eventbusSetting)
-  fun getIgniteConfig(): IgniteConfig = IgniteConfig(eventbusSetting)
-  fun getZookeeperConfig(): ZookeeperConfig {
-    return ZookeeperConfig(eventbusSetting)
-  }
 
   class SSL(jsonObject: JsonObject) {
     private val sslSetting = jsonObject.getJsonObject(MAIN, JsonObject())
@@ -82,59 +78,5 @@ class EventBusSetting(jsonObject: JsonObject) {
     }
   }
 
-  class IgniteConfig(jsonObject: JsonObject) {
-    private val igniteConfig = jsonObject.getJsonObject(
-      MAIN
-    )
-    val addresses = igniteConfig.getString(ADDRESSES)
-    val dataEncryptionCertPath = igniteConfig.getString(DATAENCRYPTIONCERTPATH)
-    val dataEncryptionPassword = igniteConfig.getString(DATAENCRYPTIONCERTPASSWORD)
-    val workDir = igniteConfig.getString(WORKDIR)
-    val certPath = igniteConfig.getString(CERTPATH)
-    val certPassword = igniteConfig.getString(CERTPASSWORD)
-    val caPath = igniteConfig.getString(CAPATH)
-    val caPassword = igniteConfig.getString(CAPASSWORD)
 
-    companion object {
-      const val TYPE = "ignite"
-      const val MAIN = "ignite_config"
-      const val ADDRESSES = "addresses"
-      const val DATAENCRYPTIONCERTPATH = "dataEncryptionCertPath"
-      const val DATAENCRYPTIONCERTPASSWORD = "dataEncryptionPassword"
-      const val WORKDIR = "workDir"
-      const val CERTPATH = "certPath"
-      const val CERTPASSWORD = "certPassword"
-      const val CAPATH = "caPath"
-      const val CAPASSWORD = "caPassword"
-    }
-  }
-
-  class ZookeeperConfig(jsonObject: JsonObject) {
-    val zookeeperConfig = jsonObject.getJsonObject(
-      MAIN
-    )
-    val zookeeperHosts = zookeeperConfig.getString(ZOOKEEPERHOSTS)
-    val rootPath = zookeeperConfig.getString(ROOTPATH)
-
-    companion object {
-      const val TYPE = "zookeeper"
-      const val MAIN = "zookeeperConfig"
-      const val ZOOKEEPERHOSTS = "zookeeperHosts"
-      const val ROOTPATH = "rootPath"
-    }
-
-    class Retry(jsonObject: JsonObject) {
-      private val config = jsonObject.getJsonObject(EventBusSetting.MAIN, JsonObject()).getJsonObject(
-        MAIN, JsonObject()
-      ).getJsonObject(MAIN)
-      val initialSleepTime = config.getInteger(INITIALSLEEPTIME)
-      val maxTimes = config.getInteger(MAXTIMES)
-
-      companion object {
-        const val MAIN = "retry"
-        const val INITIALSLEEPTIME = "initialSleepTime"
-        const val MAXTIMES = "maxTimes"
-      }
-    }
-  }
 }

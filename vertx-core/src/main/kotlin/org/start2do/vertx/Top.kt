@@ -7,9 +7,8 @@ import io.vertx.core.spi.cluster.ClusterManager
 import io.vertx.core.spi.logging.LogDelegate
 import io.vertx.core.spi.logging.LogDelegateFactory
 import kotlinx.coroutines.CoroutineDispatcher
-import org.start2do.vertx.ext.CCoroutineExceptionHandler
+import org.start2do.vertx.ext.ExceptionHandler
 import org.start2do.vertx.ext.getLogger
-import kotlin.properties.Delegates
 
 /**
  * @Author HelloBox@outlook.com
@@ -20,7 +19,7 @@ object Top {
   var TopClusterManager: ClusterManager? = null
   lateinit var LongTimeExecutor: WorkerExecutor
   val logger: LogDelegate = getLogger("TOP")
-  val CCoroutineExceptionHandler = CCoroutineExceptionHandler()
+  val CCoroutineExceptionHandler = ExceptionHandler()
   lateinit var coroutineDispatcher: CoroutineDispatcher
   lateinit var logDelegate: LogDelegateFactory;
 }
